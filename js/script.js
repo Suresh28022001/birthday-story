@@ -8,7 +8,7 @@ const LOVE_CONFIG = {
   herNames: ["Sharmi", "Thanga Mailuuu", "Milasha", "pattu", "Thango", "chello", "makku", "alagii", "pattu ma", "Maragathuuu magale"],   // <- her pet names (first = main name; the others rotate through the text)
   yourNames: ["Sharmi's pattu", "Sharmi's Boy", "Thanga Mailuu's love", "Nallavane KT"],   // <- your names. Each place that mentions you uses ONE of them (letter = 1st, birthday page = 2nd, last surprise = 3rd, easter egg = 4th)
   unlockDate: "2026-11-26T00:00:00",         // <- opens by itself at this local time (26 Nov 2026, 12:00 am)
-  password: "pinky",                         // <- password that opens it early
+  password: "pinkyy",                         // <- password that opens it early
   passwordHint: "love",                      // <- hint shown on the lock screen
   birthdayMessage: "Happy Birthday, My Love ❤️",
   galleryPin: "2826",                        // <- 4-digit PIN that unlocks the photo gallery
