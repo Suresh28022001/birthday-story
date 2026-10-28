@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#fff3ea">
+<title>A Little Journey Through My Heart</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@500;700&family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<canvas id="bg" aria-hidden="true"></canvas>
+<canvas id="fx" aria-hidden="true"></canvas>
+
+<!-- Countdown + password gate -->
+<section id="gate" aria-label="Locked until the birthday">
+  <div class="gh" aria-hidden="true">♥</div>
+  <h1 class="serif gt">A Little Journey Through My Heart</h1>
+  <p class="script big" id="gFor"></p>
+  <div class="cd8" role="timer" aria-live="off">
+    <div><b id="cdD">00</b><small>days</small></div>
+    <div><b id="cdH">00</b><small>hours</small></div>
+    <div><b id="cdM">00</b><small>minutes</small></div>
+    <div><b id="cdS">00</b><small>seconds</small></div>
+  </div>
+  <p class="ginfo" id="gInfo"></p>
+  <form class="gform" id="gForm" autocomplete="off">
+    <input id="gPw" type="password" placeholder="Enter the password" aria-label="Password" autocapitalize="none" autocorrect="off" spellcheck="false">
+    <button class="btn" type="submit">Unlock ✨</button>
+    <p class="hint" id="gMsg" aria-live="polite"></p>
+  </form>
+</section>
+
+<header id="hud" hidden>
+  <button id="logo" aria-label="Heart">♥</button>
+  <nav id="dots" aria-label="Chapters"></nav>
+  <button id="restart">Restart ↻</button>
+</header>
+
+<main>
+  <!-- 1 · Opening -->
+  <section class="chapter active" data-n="1">
+    <p class="script big ln1">I made something for you...</p>
+    <p class="serif ln2">But you have to discover it yourself. ❤️</p>
+    <div class="ln3">
+      <button class="btn" id="start">Start the Journey ✨</button>
+      <div class="load" id="load"><i></i></div>
+    </div>
+    <p class="hint ln3" id="bdayHint"></p>
+  </section>
+
+  <!-- 2 · Memories -->
+  <section class="chapter" data-n="2">
+    <h2>Do you remember?</h2>
+    <p class="hint">Tap each card to unlock it.</p>
+    <div class="grid" id="memGrid"></div>
+    <p class="script big" id="memDone" hidden>You unlocked all the memories. ❤️</p>
+    <button class="btn" data-next hidden>Continue →</button>
+  </section>
+
+  <!-- 3 · Letter -->
+  <section class="chapter" data-n="3">
+    <p class="script big" id="intro3">You have a letter...</p>
+    <div class="env" id="env"><div class="paperin"></div><div class="flap"></div><div class="seal">♥</div></div>
+    <button class="btn" id="openLetter">Open it 💌</button>
+    <article class="letter" id="letter" hidden></article>
+    <button class="btn" data-next hidden>Continue →</button>
+  </section>
+
+  <!-- 4 · Stars -->
+  <section class="chapter" data-n="4">
+    <h2>Things I love about you</h2>
+    <p class="hint" id="skyHint">Touch the stars.</p>
+    <div id="sky">
+      <svg id="lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
+    </div>
+    <p class="starmsg" id="starMsg" aria-live="polite"></p>
+    <button class="btn" data-next hidden>Continue →</button>
+  </section>
+
+  <!-- 5 · Quiz -->
+  <section class="chapter" data-n="5">
+    <h2>How well do you know us?</h2>
+    <div id="quiz" class="quiz"></div>
+    <button class="btn" data-next hidden>Continue →</button>
+  </section>
+
+  <!-- 6 · Photos -->
+  <section class="chapter" data-n="6">
+    <div class="pinbox" id="pinBox">
+      <h2>A little lock 🔒</h2>
+      <p class="hint" id="pinHint"></p>
+      <div class="pd" id="pinDots" aria-label="PIN progress"></div>
+      <div class="pad" id="pad"></div>
+      <p class="hint" id="pinMsg" aria-live="polite"></p>
+    </div>
+    <div id="galBox" hidden>
+      <h2>Little moments, big memories</h2>
+      <p class="hint">Tap a photo to hold it a little closer.</p>
+      <div class="wall" id="wall"></div>
+      <button class="btn" data-next>Continue →</button>
+    </div>
+  </section>
+
+  <!-- 7 · Secrets -->
+  <section class="chapter" data-n="7">
+    <h2>There are still things I haven't told you...</h2>
+    <div class="grid" id="secGrid"></div>
+    <button class="btn" data-next hidden>Continue →</button>
+  </section>
+
+  <!-- 8 · Birthday -->
+  <section class="chapter" data-n="8">
+    <p class="script big" id="t8"></p>
+    <div id="cakeBox" hidden>
+      <p class="hint">Make a wish. Then tap each candle.</p>
+      <div class="cake">
+        <div class="candles" id="candles"></div>
+        <div class="l l3"></div><div class="l l2"></div><div class="l l1"></div>
+      </div>
+    </div>
+    <div id="final" hidden>
+      <div class="rays" aria-hidden="true"></div>
+      <p class="script big hb1" id="hb1">Happy Birthday</p>
+      <div id="hbw"><h1 class="hb" id="hb"></h1></div>
+      <div id="nickw"><p class="nick" id="nick"></p></div>
+      <p class="dl" id="dateLine"></p>
+      <p class="serif sub" id="sub"></p>
+      <div id="fText"></div>
+      <p class="script big" id="days" hidden></p>
+      <div id="sig"></div>
+      <p class="script big" id="bm"></p>
+      <button class="btn" id="lastBtn">One Last Surprise ✨</button>
+    </div>
+  </section>
+</main>
+
+<div class="modal" id="last" hidden role="dialog" aria-modal="true">
+  <p class="script big" id="lastText"></p>
+  <button class="btn" id="lastClose">Close ❤️</button>
+  <button class="mx" id="lastX" aria-label="Close">✕</button>
+</div>
+
+<div class="modal" id="egg" hidden role="dialog" aria-modal="true">
+  <p class="serif" id="egg1"></p>
+  <p class="script big" id="egg2"></p>
+  <button class="btn" id="eggClose">Close ❤️</button>
+  <button class="mx" id="eggX" aria-label="Close">✕</button>
+</div>
+
+<div class="lb" id="lb" hidden role="dialog" aria-modal="true" aria-label="Photo viewer">
+  <button class="lbx" id="lbClose" aria-label="Close">✕</button>
+  <div class="lbimg"><img id="lbImg" alt=""><div class="lbph" id="lbPh" hidden>♥</div></div>
+  <p class="script" id="lbCap"></p>
+  <div class="lbnav">
+    <button id="lbPrev" aria-label="Previous photo">‹</button>
+    <button id="lbNext" aria-label="Next photo">›</button>
+  </div>
+</div>
+
+<div class="tc" id="tc" hidden aria-hidden="true"></div>
+
+<button id="music" aria-pressed="false" aria-label="Play music">🎵</button>
+<audio id="audio" loop preload="none"></audio>
+
+<script src="js/script.js"></script>
+</body>
+</html>
