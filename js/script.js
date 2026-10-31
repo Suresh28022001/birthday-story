@@ -12,24 +12,48 @@ const LOVE_CONFIG = {
   passwordHint: "love",                      // <- hint shown on the lock screen
   birthdayMessage: "Happy Birthday, My Love ❤️",
   galleryPin: "2826",                        // <- 4-digit PIN that unlocks the photo gallery
-  pinHint: "Hint: only we know it. ❤️",       // <- small hint shown on the lock screen
+  pinHint: "Hint(date): only we know it. ❤️, call me if you need help",       // <- small hint shown on the lock screen
   birthdayDay: 26, birthdayMonth: 11,        // <- her birthday (26 November)
-  startDate: "2024-02-14",                   // <- the day your story began (YYYY-MM-DD). Use "" to hide the day counter
-  musicFile: "music/birthday-song.mp3",      // <- put your song in the music folder
+  startDate: "2024-02-14",        
+  
+  
+  
+  
+  
+  
+  
+  // <- the day your story began (YYYY-MM-DD). Use "" to hide the day counter
+  musicFile: "music/Uyirey.mp3",      // <- put your song in the music folder
   photos: [                                  // <- put your photos in the images folder
     "images/photo1.jpg",
     "images/photo2.jpg",
     "images/photo3.jpg",
-    "images/photo4.jpg"
+    "images/photo4.jpg",
+    "images/photo5.jpg",
+    "images/photo6.jpg",
+    "images/photo7.jpg",
+    "images/photo8.jpg",
+    "images/photo9.jpg",
+    "images/photo10.jpg",
+    "images/photo11.jpg",
+    "images/photo12.jpg"
   ]
 };
 
-// One caption per photo (same order as photos above). Add more photos + captions freely.
+// Keep one caption for each of the 12 photos, in the same order as the photo paths above.
 const CAPTIONS = [
   "One of my favorite memories ❤️",
   "That smile...",
   "I wish I could relive this moment.",
-  "Us, just being us."
+  "Us, just being us.",
+  "A little moment I still remember.",
+  "A day made better by you.",
+  "One for the memory books.",
+  "Your smile makes this one special.",
+  "A moment I want to keep close.",
+  "My favorite kind of ordinary day.",
+  "A memory that always makes me smile.",
+  "The moments I hold closest to my heart."
 ];
 
 // Chapter 2: cards she unlocks. Add or remove items freely (4-6 works best).
@@ -69,14 +93,14 @@ Always yours,
 
 // Chapter 4: exactly 8 stars (they form the heart).
 const STARS = [
-  { label: "Your smile", msg: "It's the first thing I think of when I think of good days." },
-  { label: "Your kindness", msg: "You make people feel safe without even trying." },
-  { label: "The way you laugh", msg: "I'd say anything just to hear it again." },
-  { label: "Your little habits", msg: "The small things you don't notice are the ones I love most." },
-  { label: "Your strength", msg: "You carry so much, and still show up gently." },
+  { label: "Your cheek-dimple smile", msg: "That one-sided kanna Kuzhi smile makes you even more beautiful." },
+  { label: "When you hold my hand", msg: "Nee en kaiya pudikkumbodhu, it feels like heaven—with a little shy feeling." },
+  { label: "You came for me", msg: "Enakkaga amma kitta sanda pottu, leave podaama vandhalla... I'm very happy." },
   { label: "The way you understand me", msg: "Sometimes you know before I say it." },
-  { label: "The way you make ordinary days special", msg: "Nothing is ordinary when you're in it." },
-  { label: "Simply... you", msg: "No reason needed. Just you." }
+  { label: "Your kindness", msg: "You make people feel safe. Even when you're angry, you still care about me." },
+  { label: "The way you laugh", msg: "I'd say anything just to hear it again." },
+  { label: "Simply... you", msg: "No reason needed. Just nee mattum." },
+  { label: "Your strength", msg: "You carry so much, and still show up gently." }
 ];
 
 // Chapter 5: quiz. Every answer is "right" - reply[i] is the playful reaction to opts[i].
@@ -375,7 +399,8 @@ function endQuiz(fx_) {
 hooks[5] = () => { if (st.done >= 5 && !quizEnded) endQuiz(false); else if (!quizEnded && !qz.children.length) rq(); };
 
 /* ---------- 6 · photos + lightbox ---------- */
-const lb = $("#lb"), lbImg = $("#lbImg"), lbPh = $("#lbPh"); let li = 0;
+const lb = $("#lb"), lbImg = $("#lbImg"), lbPh = $("#lbPh"); let li = 0, galleryPage = 0;
+const GALLERY_PAGE_SIZE = 4, GALLERY_PAGE_COUNT = 3;
 C.photos.forEach((src, i) => {
   const bt = h("button", "pol", `<span class="ph"><span>♥<br>${src.split("/").pop()}</span></span><span class="cap">${CAPTIONS[i] || ""}</span>`);
   bt.style.setProperty("--r", ((i % 2 ? 1 : -1) * (1 + (i * 37 % 30) / 10)) + "deg");
@@ -385,6 +410,29 @@ C.photos.forEach((src, i) => {
   bt.onclick = () => openLb(i);
   $("#wall").append(bt);
 });
+function showGalleryPage(page) {
+  galleryPage = Math.max(0, Math.min(page, GALLERY_PAGE_COUNT - 1));
+  const firstPhoto = galleryPage * GALLERY_PAGE_SIZE;
+  $$(".pol", $("#wall")).forEach((photo, i) => {
+    photo.hidden = i < firstPhoto || i >= firstPhoto + GALLERY_PAGE_SIZE;
+  });
+  const special = galleryPage === GALLERY_PAGE_COUNT - 1;
+  $("#galBox").classList.toggle("special", special);
+  $("#wall").classList.toggle("special", special);
+  $("#galleryTitle").textContent = special ? "Our most treasured moments" : "Little moments, big memories";
+  $("#galleryHint").textContent = special
+    ? "The ones I'll hold closest to my heart. ❤️"
+    : "Tap a photo to hold it a little closer.";
+  $("#gallerySpecial").hidden = !special;
+  $("#galleryPageLabel").textContent = `Page ${galleryPage + 1} of ${GALLERY_PAGE_COUNT}`;
+  $("#galleryPrev").disabled = galleryPage === 0;
+  $("#galleryNext").hidden = special;
+  $("#galleryContinue").hidden = !special;
+}
+$("#galleryPrev").onclick = () => showGalleryPage(galleryPage - 1);
+$("#galleryNext").onclick = () => showGalleryPage(galleryPage + 1);
+$("#galleryContinue").onclick = () => complete(6);
+showGalleryPage(0);
 function openLb(i) {
   const n = C.photos.length; li = (i + n) % n; lb.hidden = false;
   lbImg.hidden = false; lbPh.hidden = true; lbImg.alt = CAPTIONS[li] || "Our photo";
@@ -562,15 +610,14 @@ addEventListener("pointermove", e => {
 }, { passive: true });
 
 /* ---------- gate: countdown to the birthday + password ---------- */
-const GK = "loveStory.gate", gate = $("#gate"), gTarget = new Date(C.unlockDate).getTime();
-let gateOpen = false; try { gateOpen = localStorage.getItem(GK) === "1"; } catch (e) {}
-if (st.done >= 1 || Date.now() >= gTarget) gateOpen = true;
+const gate = $("#gate"), gTarget = new Date(C.unlockDate).getTime();
+const gateOpen = Date.now() >= gTarget;
 const gDate = new Date(C.unlockDate).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
 $("#gFor").textContent = `For ${C.herName} ❤️`;
 $("#gInfo").textContent = `To open this, enter the password correctly, or wait until ${gDate}, 12:00 am.`;
 $("#gMsg").textContent = `Hint: ${C.passwordHint} 💘`;
 function openGate(anim) {
-  clearInterval(openGate.t); try { localStorage.setItem(GK, "1"); } catch (e) {}
+  clearInterval(openGate.t);
   $("main").inert = false;
   if (!anim) { gate.hidden = true; return; }
   gate.classList.add("out"); burst(innerWidth / 2, innerHeight / 2, 70, "h", 9); setTimeout(() => gate.hidden = true, 1200);
