@@ -42,10 +42,10 @@ const LOVE_CONFIG = {
 
 // Keep one caption for each of the 12 photos, in the same order as the photo paths above.
 const CAPTIONS = [
-  "One of my favorite memories ❤️",
+  "One of my favorite pic da ❤️",
   "That smile...",
   "I wish I could relive this moment.",
-  "Us, just being us.",
+  "Loooks wow da alagii 😊",
   "A little moment I still remember.",
   "A day made better by you.",
   "One for the memory books.",
@@ -58,10 +58,10 @@ const CAPTIONS = [
 
 // Chapter 2: cards she unlocks. Add or remove items freely (4-6 works best).
 const MEMORIES = [
-  { icon: "💌", title: "The moment I realized you were special", text: "You probably don't know this... but that little moment stayed in my heart." },
+  { icon: "💌", title: "The moment I realized you were special", text: "you are speacial because Murugar kudutha precious Gift nee." },
   { icon: "🌙", title: "A conversation I never wanted to end", text: "I kept finding reasons to say one more thing, just so it wouldn't stop." },
-  { icon: "😂", title: "A moment that still makes me smile", text: "I still laugh when I think about it. You have no idea how often." },
-  { icon: "❤️", title: "The reason you became so important to me", text: "It wasn't one big thing. It was everything, slowly, until it was you." }
+  { icon: "😂", title: "First time un hand pudicha moment, makes me smile", text: "I still laugh when I think about it. You have no idea how often." },
+  { icon: "❤️", title: "The reason you became so important to me", text: "Enoda dream girl qualifications ellame un kita irukku, feel lucky" }
 ];
 
 // Chapter 3: the letter. \n = new line.
@@ -77,16 +77,16 @@ beautiful parts of it.
 
 You became one of those people for me.
 
-Every conversation.
-Every laugh.
-Every little moment.
+Every conversation. Every laugh. Every little moment.
 
-Somehow, they all became memories
+Somehow, they all became memories but
 I want to keep forever.
 
-And today, I just want you to know, [HER NICK]...
-
-I'm incredibly grateful that you exist. ❤️
+I may not always have the perfect words, but one thing will always be true
+.
+.
+.
+I love you pattu, and I'm so lucky to have you in my life. ❤️
 
 Always yours,
 [YOUR NAME 1]`;
@@ -100,14 +100,14 @@ const STARS = [
   { label: "Your kindness", msg: "You make people feel safe. Even when you're angry, you still care about me." },
   { label: "The way you laugh", msg: "I'd say anything just to hear it again." },
   { label: "Simply... you", msg: "No reason needed. Just nee mattum." },
-  { label: "Your strength", msg: "You carry so much, and still show up gently." }
+  { label: "When you drive", msg: "Nan bike la un pinnadi ukkarumpothu feeling like happy person in the world." }
 ];
 
 // Chapter 5: quiz. Every answer is "right" - reply[i] is the playful reaction to opts[i].
 const QUIZ = [
-  { q: "Who fell first?", opts: ["Me", "You", "We're still debating this 😂"], reply: ["Brave of you to admit it.", "I knew it. I knew it. 😏", "Hearing arguments until 2043."] },
-  { q: "Who is more likely to say \"I'm not hungry\" and then eat my food?", opts: ["Me", "You 😏"], reply: ["Honest. Suspiciously honest.", "Guilty. Always guilty."] },
-  { q: "What's my favorite thing about you?", opts: ["Your smile", "Your laugh", "How you care", "Everything. Obviously."], reply: ["Strong guess.", "Also very strong.", "That one hits.", "Correct. No notes."] }
+  { q: "The date we remember without fight in October 2026?", opts: ["27", "28", "29"], reply: ["Ada podi, nyabagam illaya?", "Maranthuta thana. 😏", "Correct uh. Inime apdi iruka try pannu 😂."] },
+  { q: "Enaku pudicha color?", opts: ["Blue", "Green","Red"], reply: ["correct uh, epdi theriyum!", "thappu di", "Arumai da, thappu!"] },
+  { q: "What's my favorite thing about you?", opts: ["Your smile", "Your laugh", "How you care", "Everything. Obviously."], reply: ["Strong guess.", "Also very strong.", "That one hits.", "Correct. eppovume pudikum 😊."] }
 ];
 const QUIZ_RESULT = "Okay... you officially know us too well, [HER NICK]. ❤️";
 
@@ -131,31 +131,53 @@ const FINAL_TEXT = [
 // "One Last Surprise" text.
 const LAST_SURPRISE = `If I could give you one thing today...
 
-I would give you the ability
-to see yourself through my eyes.
+It would be one wish —
 
-Then you would finally understand
-how incredibly special you are to me, [HER NICK].
+Ippo irukkura maariye, eppovum ippadiye sirichite iru da thangoo. ❤️
 
-❤️
+Because your smile is one of the most beautiful things
+I could ever ask for.
+
+I hope you always know
+just how incredibly special you are to me, [HER NICK].
+
+Forever my favourite person. ❤️
 
 - [YOUR NAME 3]`;
 
 const EGG_1 = "Okay... you found something I wasn't supposed to show you 😂❤️";
 const EGG_2 = "I love you more than this website can possibly explain, [HER NICK].\n\n- [YOUR NAME 4]";
 
-// Lock screen: funny replies for a wrong password (picked at random, never the same twice in a row). Add or edit freely!
 const WRONG_MSGS = [
-  "this is wrong pattu, vera try panni paaru 😉",
-  "aiyo Thango, idhu illa da 😂 innoru thadava try pannu",
-  "hmm chello, nalla yosichu paaru 🤔💕",
-  "makku, ippadi guess pannina kandupidikka mudiyadhu 😜",
-  "alagii, unakku theriyum, konjam heart-a use pannu 🧠❤️",
-  "pattu ma, adhu illa ma 🙈 try again",
-  "Maragathuuu magale, one more chance 😘",
-  "Milasha, are you even trying? 😆",
-  "Sharmi, seriously? 🤨 indha password-ku hint irukku paaru 😂",
-  "Thanga Mailuuu, almost... no, not even close 😝"
+  "chellooo 😂 idhu illa da, konjam yosichu paaru",
+  "alagii, password guess panradhu ivlo kashtama? 😜",
+  "Glitch ye 😂 system-a vida nee dhaan glitch ah irukka",
+  "ada ara mentale 🤦‍♂️😂 one more try pannu",
+  "chellakutty, close... but no 😌💕",
+  "thangooo, brain konjam ON pannu dii 🧠😂",
+  "ayyo alagii, password ku hint kuduthane, nee hint ye maranthurupa😭😂",
+  "Glitch-u ma, wrong again 😭 try harder",
+  "ada mentaluuu 😂 hint kuduthum ippadi panriye",
+  "chello, unakku oru small hint venuma? illa innum konjam struggle pannariya? 😏",
+  "alagiiiii 😭 idhuvum wrong ah? seri seri, next try",
+  "thango, heart use pannina kandippa kandupidichiduva, last 2 letter same than ❤️😜",
+  "ada ara mentale, password-a guess panra maari illa lottery ticket edukra maari irukku 😂",
+  "arumai da, system unna reject panniduchu poye padi, pothum 😂💕",
+  "chellooo, konjam serious-ah try pannu da 😭",
+  "azhagii, answer unakku romba pakkathula dhaan irukku 👀❤️",
+  "thangam, almost... actually no 😭😂",
+  "ada loosuuu 😂 one more chance, don't waste it, epdiyum waste paniduva thana",
+  "chello ma, unakku special hint kudukkanuma? 😏",
+  "alagii, ippadi random-ah potta password kedaikuma? 😂",
+  "Glitch-u, nee password guess panriya illa enna test panriya? 🤨😂",
+  "ada ara mentale, think think think 🧠🤣",
+  "thangooo, wrong password... but cute attempt 😌❤️",
+  "chellakutty, password venumna chocolate kuduthu vangiko 😂💕",
+  "alagiiiii, unakku idhu theriyum... yosichu paaru 😏",
+  "Glitch ye 😂 innoru thadava try pannu, indha time brain-oda",
+  "ada mentale, password-ku kooda un mela kovam vandhuduchu 😂",
+  "chello, sari sari... last chance nu solli innum 10 chances kudukren 😌",
+  "thangooo, idhu illa da 😭 but don't give up ❤️"
 ];
 
 /* =====================================================================
