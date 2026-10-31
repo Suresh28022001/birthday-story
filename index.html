@@ -97,10 +97,16 @@
       <p class="hint" id="pinMsg" aria-live="polite"></p>
     </div>
     <div id="galBox" hidden>
-      <h2>Little moments, big memories</h2>
-      <p class="hint">Tap a photo to hold it a little closer.</p>
+      <h2 id="galleryTitle">Little moments, big memories</h2>
+      <p class="hint" id="galleryHint">Tap a photo to hold it a little closer.</p>
+      <p class="gallery-special-note" id="gallerySpecial" hidden>♡ The memories I treasure most ♡</p>
       <div class="wall" id="wall"></div>
-      <button class="btn" data-next>Continue →</button>
+      <div class="gallery-pager" aria-label="Photo pages">
+        <button class="gallery-page-btn" id="galleryPrev" type="button" aria-label="Previous photo page">← Previous</button>
+        <span id="galleryPageLabel" aria-live="polite">Page 1 of 3</span>
+        <button class="gallery-page-btn" id="galleryNext" type="button" aria-label="Next photo page">Next →</button>
+      </div>
+      <button class="btn" id="galleryContinue" type="button" hidden>Continue →</button>
     </div>
   </section>
 

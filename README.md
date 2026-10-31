@@ -9,7 +9,7 @@ Open `js/script.js`. Everything you should edit is in the top block, above the l
 - `MEMORIES`, `LETTER`, `STARS`, `QUIZ`, `SECRETS`, `FINAL_TEXT`, `LAST_SURPRISE`
 
 Then add your files:
-- Photos into `images/` named `photo1.jpg` to `photo4.jpg` (or change the names in `photos`)
+- Photos into `images/` named `photo1.jpg` to `photo12.jpg` (or change the names in `photos`). The gallery shows four photos per page across three pages; the third page is styled as the special memories page.
 - Your song into `music/` as `birthday-song.mp3`
 
 ## 2. Run it on your computer
