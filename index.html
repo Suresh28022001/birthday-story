@@ -110,15 +110,8 @@
     </div>
   </section>
 
-  <!-- 7 · Secrets -->
+  <!-- 7 · Birthday -->
   <section class="chapter" data-n="7">
-    <h2>There are still things I haven't told you...</h2>
-    <div class="grid" id="secGrid"></div>
-    <button class="btn" data-next hidden>Continue →</button>
-  </section>
-
-  <!-- 8 · Birthday -->
-  <section class="chapter" data-n="8">
     <p class="script big" id="t8"></p>
     <div id="cakeBox" hidden>
       <p class="hint">Make a wish. Then tap each candle.</p>
@@ -139,6 +132,15 @@
       <div id="sig"></div>
       <p class="script big" id="bm"></p>
       <button class="btn" id="lastBtn">One Last Surprise ✨</button>
+
+      <!-- Birthday video (path is set in script.js -> LOVE_CONFIG.videoFile) -->
+      <section class="vidbox" id="vidBox" hidden aria-label="Birthday video">
+        <p class="script big" id="vidTitle">A little video for you 🎥</p>
+        <div class="vwrap">
+          <video id="wishVideo" controls playsinline webkit-playsinline preload="none" aria-label="Birthday wish video"></video>
+        </div>
+        <p class="hint" id="vidMsg" hidden>The video couldn't load right now. Please try again in a moment. ❤️</p>
+      </section>
     </div>
   </section>
 </main>

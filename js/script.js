@@ -14,15 +14,8 @@ const LOVE_CONFIG = {
   galleryPin: "2826",                        // <- 4-digit PIN that unlocks the photo gallery
   pinHint: "Hint(date): only we know it. ❤️, call me if you need help",       // <- small hint shown on the lock screen
   birthdayDay: 26, birthdayMonth: 11,        // <- her birthday (26 November)
-  startDate: "2024-02-14",        
-  
-  
-  
-  
-  
-  
-  
-  // <- the day your story began (YYYY-MM-DD). Use "" to hide the day counter
+  startDate: "2026-09-08",                   // <- the day your story began (YYYY-MM-DD). Use "" to hide the day counter
+  videoFile: "images/birthday_wish_video.mp4", // <- video shown at the end of the wish page ("" hides the video)
   musicFile: "music/Uyirey.mp3",      // <- put your song in the music folder
   photos: [                                  // <- put your photos in the images folder
     "images/photo1.jpg",
@@ -42,17 +35,17 @@ const LOVE_CONFIG = {
 
 // Keep one caption for each of the 12 photos, in the same order as the photo paths above.
 const CAPTIONS = [
+  "That smile , alagu dii",
   "One of my favorite pic da ❤️",
-  "That smile...",
-  "I wish I could relive this moment.",
+  "Background Edit ah original ah, bt nalla iruku",
   "Loooks wow da alagii 😊",
-  "A little moment I still remember.",
   "A day made better by you.",
-  "One for the memory books.",
-  "Your smile makes this one special.",
+  "A little moment I still remember.",
+  "White dog nalla iruku la",
+  "Kadaisi varaikum rendu perum iruka photo varala.",
   "A moment I want to keep close.",
-  "My favorite kind of ordinary day.",
-  "A memory that always makes me smile.",
+  "Our first couple picture.",
+  "Kanna kuzhi alagu dii, enaku pudikum",
   "The moments I hold closest to my heart."
 ];
 
@@ -110,13 +103,6 @@ const QUIZ = [
   { q: "What's my favorite thing about you?", opts: ["Your smile", "Your laugh", "How you care", "Everything. Obviously."], reply: ["Strong guess.", "Also very strong.", "That one hits.", "Correct. eppovume pudikum 😊."] }
 ];
 const QUIZ_RESULT = "Okay... you officially know us too well, [HER NICK]. ❤️";
-
-// Chapter 7: secrets (4-6 works best).
-const SECRETS = [
-  "Sometimes I randomly smile because I remembered something you said.",
-  "You're one of the first people I want to tell when something good happens.",
-  "Even the simplest moments with you somehow become special."
-];
 
 // Final birthday text: each item is one paragraph.
 const FINAL_TEXT = [
@@ -188,7 +174,7 @@ const WRONG_MSGS = [
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
-const C = LOVE_CONFIG, TOTAL = 8, KEY = "loveStory.v1";
+const C = LOVE_CONFIG, TOTAL = 7, KEY = "loveStory.v2", OLD_KEY = "loveStory.v1";
 let nickI = 0;
 const rep = s => s.replaceAll("[HER NAME]", C.herName).replace(/\[YOUR NAME(?: (\d))?\]/g, (m, n) => C.yourNames[((n || 1) - 1) % C.yourNames.length])
   .replace(/\[HER NICK\]/g, () => C.herNames[1 + (nickI++ % (C.herNames.length - 1))]);
@@ -198,12 +184,15 @@ const rc = () => COL[Math.random() * COL.length | 0];
 const ctr = e => { const r = e.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; };
 
 /* ---------- state (localStorage) ---------- */
-let st = { done: 0, cur: 1, mem: [], sec: [], egg: false, music: false, pin: false };
-try { Object.assign(st, JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (e) {}
-const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} };
+let st = { done: 0, cur: 1, mem: [], egg: false, music: false, pin: false };
+let restarting = false;   // while true, nothing is written back to localStorage (see restart handler)
+try { Object.assign(st, JSON.parse(localStorage.getItem(KEY) || "{}")); localStorage.removeItem(OLD_KEY); } catch (e) {}
+st.done = Math.max(0, Math.min(+st.done || 0, TOTAL)); st.cur = Math.max(1, Math.min(+st.cur || 1, TOTAL));
+const save = () => { if (restarting) return; try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} };
+if ("scrollRestoration" in history) history.scrollRestoration = "manual";
 
 /* ---------- typewriter ---------- */
-const type = (el, t, sp = 40) => new Promise(res => {
+const type = (el, t, sp = 20) => new Promise(res => {
   if (RM) { el.textContent = t; return res(); }
   let i = 0; el.classList.add("caret");
   const s = () => {
@@ -217,7 +206,7 @@ const type = (el, t, sp = 40) => new Promise(res => {
 /* ---------- canvases: ambient background + effects ---------- */
 const bg = $("#bg"), b = bg.getContext("2d"), fx = $("#fx"), f = fx.getContext("2d");
 const D = Math.min(devicePixelRatio || 1, 2), COL = ["#ff3d86", "#ff8fb6", "#e9c9a0", "#c2185b", "#f4a6c1", "#d9bc93"];
-let W = 0, H = 0, amb = [], P = [], fr = 0;
+let W = 0, H = 0, amb = [], P = [], fr = 0, bgRaf = 0, lastRW = innerWidth, lastRH = innerHeight;
 function resize() {
   W = bg.width = fx.width = innerWidth * D; H = bg.height = fx.height = innerHeight * D;
   const small = innerWidth < 600, n = RM ? 0 : (small ? 1 : 1.6);
@@ -228,6 +217,7 @@ function resize() {
   drawBg();
 }
 function drawBg() {
+  cancelAnimationFrame(bgRaf);   // resize() calls this too: keep exactly ONE loop running
   b.clearRect(0, 0, W, H);
   const t = Date.now() / 1000;
   for (const o of amb) {
@@ -238,9 +228,13 @@ function drawBg() {
     else { const g = b.createRadialGradient(x, y, 0, x, y, o.r * D); const sd = o.p > 3; g.addColorStop(0, sd ? "rgba(214,170,120,.24)" : "rgba(255,100,160,.16)"); g.addColorStop(1, sd ? "rgba(214,170,120,0)" : "rgba(255,100,160,0)"); b.globalAlpha = 1; b.fillStyle = g; b.fillRect(x - o.r * D, y - o.r * D, o.r * 2 * D, o.r * 2 * D); }
   }
   b.globalAlpha = 1;
-  if (!RM) requestAnimationFrame(drawBg);
+  if (!RM) bgRaf = requestAnimationFrame(drawBg);
 }
-addEventListener("resize", () => { clearTimeout(resize.t); resize.t = setTimeout(resize, 200); });
+// Ignore the small height changes caused by the mobile address bar showing/hiding.
+addEventListener("resize", () => {
+  if (innerWidth === lastRW && Math.abs(innerHeight - lastRH) < 160) return;
+  clearTimeout(resize.t); resize.t = setTimeout(() => { lastRW = innerWidth; lastRH = innerHeight; resize(); }, 200);
+});
 
 function spawn(o) { P.push(Object.assign({ vx: 0, vy: 0, g: .1, l: 0, m: 90, r: 6, rot: 0, vr: 0, c: "#ff3d86", t: "h" }, o)); if (!fr) fr = requestAnimationFrame(tick); }
 function tick() {
@@ -283,6 +277,20 @@ document.addEventListener("pointerdown", e => {
   bt.append(s); setTimeout(() => s.remove(), 700);
 });
 
+/* ---------- popups: shown instantly, page behind is frozen ---------- */
+let lockY = 0, locks = 0;
+function lockScroll() {
+  if (locks++) return;
+  lockY = scrollY; document.body.style.top = -lockY + "px"; document.body.classList.add("noscroll");
+}
+function unlockScroll() {
+  if (!locks || --locks) return;
+  document.body.classList.remove("noscroll"); document.body.style.top = "";
+  scrollTo(0, lockY);   // put the page back exactly where it was
+}
+function openModal(m) { if (!m.hidden) return; m.hidden = false; m.scrollTop = 0; lockScroll(); }
+function closeModal(m) { if (m.hidden) return; m.hidden = true; unlockScroll(); }
+
 /* ---------- chapter navigation ---------- */
 const chapters = $$(".chapter"), dots = $("#dots"), hooks = {};
 let opened3 = false;
@@ -291,8 +299,8 @@ function updateHud() {
   $("#hud").hidden = st.done < 1;
   $$(".d").forEach((d, i) => { const n = i + 1; d.disabled = n > st.done + 1; d.classList.toggle("on", n === st.cur); d.classList.toggle("done", n <= st.done); });
 }
-const TITLES = ["", "Do you remember?", "A letter, just for you", "Things I love about you", "How well do you know us?", "Little moments, big memories", "Things I haven't told you", ""];
-const PAL = ["#ffd6e5", "#ffdde8", "#ffe0ea", "#ffd0e0", "#ffdbe6", "#ffd9e2", "#fcd5e0", "#ffd6e5"];
+const TITLES = ["", "Do you remember?", "A letter, just for you", "Things I love about you", "How well do you know us?", "Little moments, big memories", ""];
+const PAL = ["#ffd6e5", "#ffdde8", "#ffe0ea", "#ffd0e0", "#ffdbe6", "#ffd9e2", "#ffd6e5"];
 function titleCard(n) {
   if (!TITLES[n - 1]) return;
   const t = $("#tc"); t.hidden = false; t.innerHTML = `<small>♥</small><span>${TITLES[n - 1]}</span>`;
@@ -468,7 +476,7 @@ let tx = 0;
 lb.addEventListener("touchstart", e => tx = e.touches[0].clientX, { passive: true });
 lb.addEventListener("touchend", e => { const dx = e.changedTouches[0].clientX - tx; if (Math.abs(dx) > 50) openLb(li + (dx < 0 ? 1 : -1)); });
 addEventListener("keydown", e => {
-  if (e.key === "Escape") { closeLb(); $("#last").hidden = $("#egg").hidden = true; }
+  if (e.key === "Escape") { closeLb(); closeModal($("#last")); closeModal($("#egg")); }
   if (!lb.hidden && e.key === "ArrowLeft") openLb(li - 1);
   if (!lb.hidden && e.key === "ArrowRight") openLb(li + 1);
 });
@@ -501,28 +509,7 @@ addEventListener("keydown", e => {
   if (/^\d$/.test(e.key)) key(e.key); else if (e.key === "Backspace") key("⌫");
 });
 
-/* ---------- 7 · secrets ---------- */
-const scards = SECRETS.map((m0, i) => {
-  const m = rep(m0);
-  const bt = h("button", "sec a" + (i % 4), `<i>🔒</i><b>Secret #${String(i + 1).padStart(2, "0")}</b><p></p>`);
-  bt.setAttribute("aria-label", "Locked secret " + (i + 1));
-  const openIt = instant => {
-    bt.classList.add("open"); $("i", bt).textContent = "💌"; const p = $("p", bt);
-    if (i % 4 === 3 && !instant) type(p, m, 30); else p.textContent = m;
-    if (i % 4 === 2 && !instant) burst(...ctr(bt), 24);
-  };
-  bt.openIt = openIt;
-  bt.onclick = () => {
-    if (bt.classList.contains("open")) return;
-    openIt(false); if (!st.sec.includes(i)) { st.sec.push(i); save(); }
-    if (st.sec.length >= SECRETS.length) reveal(7);
-  };
-  $("#secGrid").append(bt); return bt;
-});
-st.sec.forEach(i => scards[i] && scards[i].openIt(true));
-if (st.sec.length >= SECRETS.length) reveal(7);
-
-/* ---------- 8 · birthday moment + final ---------- */
+/* ---------- 7 · birthday moment + final ---------- */
 let ch8 = false, lit = 5;
 const t8 = $("#t8");
 async function say(t, ms) { t8.textContent = t; t8.classList.add("show"); await wait(ms); t8.classList.remove("show"); await wait(1300); }
@@ -545,11 +532,26 @@ function finalFX() {
   nickT = setInterval(() => { nk.style.opacity = 0; setTimeout(() => { ni = (ni + 1) % names.length; nk.textContent = names[ni]; nk.style.opacity = 1; }, 500); }, 2800);
   if (RM) return;
   fxT = setInterval(() => {
-    if ($("#final").hidden) return;
+    if ($("#final").hidden || locks || document.hidden) return;
     for (let i = 0; i < 3; i++) spawn({ x: Math.random() * W, y: H + 20 * D, vx: (Math.random() - .5) * D, vy: -(2 + Math.random() * 2.5) * D, g: 0, m: 240, r: 3 + Math.random() * 4, c: rc(), t: "h" });
     const r = $("#hb").getBoundingClientRect(); burst(r.left + Math.random() * r.width, r.top + Math.random() * r.height, 5, "s", 2.5);
   }, 1200);
 }
+/* ---------- video at the end of the wish page ---------- */
+const vidBox = $("#vidBox"), vid = $("#wishVideo"), vidMsg = $("#vidMsg");
+let musicWasOn = false;
+function setupVideo() {
+  if (!C.videoFile) { vidBox.hidden = true; return; }
+  vidBox.hidden = false; vidMsg.hidden = true;
+  const want = encodeURI(String(C.videoFile).replace(/\\/g, "/"));   // "images\\x.mp4" -> "images/x.mp4"
+  if (vid.dataset.src !== want) { vid.dataset.src = want; vid.src = want; vid.load(); }
+}
+vid.addEventListener("error", () => { vidMsg.hidden = false; console.warn("Video could not be loaded:", C.videoFile); });
+// Pause the song while the video plays, and bring it back afterwards.
+vid.addEventListener("play", () => { if (!au.paused) { musicWasOn = true; au.pause(); } });
+const resumeMusic = () => { if (musicWasOn) { musicWasOn = false; au.play().catch(() => {}); } };
+vid.addEventListener("pause", resumeMusic); vid.addEventListener("ended", resumeMusic);
+
 function showFinal(instant) {
   $("#cakeBox").hidden = true; t8.hidden = true;
   $("#hb").textContent = C.herName; $("#bm").textContent = C.birthdayMessage;
@@ -563,31 +565,32 @@ function showFinal(instant) {
   ["#hb1", "#hbw", "#nickw", "#dateLine", "#sub"].forEach((q, i) => rv($(q), .2 + i * .45));
   FINAL_TEXT.forEach((t, i) => { const p = h("p"); p.textContent = rep(t); rv(p, 2.8 + i * .9); ft.append(p); });
   rv($("#days"), 2.8 + N * .9); rv($("#sig"), 3.6 + N * .9); rv($("#bm"), 4.6 + N * .9); rv($("#lastBtn"), 5.8 + N * .9);
+  setupVideo(); rv($("#vidBox"), 6.8 + N * .9);
   $("#final").hidden = false; scrollTo({ top: 0 }); finalFX();
 }
-hooks[8] = async () => {
+hooks[7] = async () => {
   if (ch8) return; ch8 = true;
-  if (st.done >= 8) return showFinal(true);
+  if (st.done >= TOTAL) return showFinal(true);
   await say("And now...", 2200); await say("There's only one thing left to say.", 3000);
   t8.hidden = true; $("#cakeBox").hidden = false;
 };
-$("#lastBtn").onclick = async () => {
-  const m = $("#last"); m.hidden = false; $("#lastClose").hidden = false; $("#lastText").textContent = "";
-  fireworks(3000); complete(8);
-  await type($("#lastText"), rep(LAST_SURPRISE), 55); burst(innerWidth / 2, innerHeight / 2, 50, "h", 8); $("#lastClose").hidden = false;
+$("#lastBtn").onclick = () => {
+  $("#lastText").textContent = rep(LAST_SURPRISE);   // full message in one go (no typewriter = nothing moves)
+  openModal($("#last")); complete(TOTAL);
 };
-$("#lastClose").onclick = $("#lastX").onclick = () => $("#last").hidden = true;
+$("#lastClose").onclick = $("#lastX").onclick = () => closeModal($("#last"));
 
 /* ---------- easter egg: tap the heart 5 times ---------- */
 let taps = 0, tapT;
 $("#logo").onclick = async e => {
   taps++; clearTimeout(tapT); tapT = setTimeout(() => taps = 0, 2000); burst(...ctr(e.currentTarget), 4);
   if (taps < 5) return; taps = 0; st.egg = true; save();
-  $("#egg").hidden = false; $("#egg1").textContent = ""; $("#egg2").textContent = "";
-  await type($("#egg1"), EGG_1, 35); await wait(500); $("#egg2").textContent = rep(EGG_2);
+  openModal($("#egg")); $("#egg1").textContent = ""; $("#egg2").textContent = "";
+  await type($("#egg1"), EGG_1, 35); await wait(500); if ($("#egg").hidden) return;
+  $("#egg2").textContent = rep(EGG_2);
   burst(innerWidth / 2, innerHeight / 2, 90, "h", 10);
 };
-$("#eggClose").onclick = $("#eggX").onclick = () => $("#egg").hidden = true;
+$("#eggClose").onclick = $("#eggX").onclick = () => closeModal($("#egg"));
 
 /* ---------- music ---------- */
 const au = $("#audio"), mb = $("#music"); au.src = C.musicFile;
@@ -608,7 +611,9 @@ if (st.music) {
 /* ---------- restart ---------- */
 $("#restart").onclick = () => {
   if (!confirm("Restart the journey from the beginning?")) return;
-  try { localStorage.removeItem(KEY); } catch (e) {}
+  restarting = true;                         // blocks save(): the audio "pause" event used to write the old progress back
+  try { au.pause(); vid.pause(); } catch (e) {}
+  try { localStorage.removeItem(KEY); localStorage.removeItem(OLD_KEY); } catch (e) {}
   location.reload();
 };
 
@@ -625,7 +630,7 @@ const bdayStr = bday.toLocaleDateString("en-GB", { day: "numeric", month: "long"
 /* ---------- sparkle trail + gentle background parallax ---------- */
 let lastT = 0;
 addEventListener("pointermove", e => {
-  if (RM) return;
+  if (RM || locks) return;
   bg.style.transform = `translate(${(e.clientX / innerWidth - .5) * -18}px,${(e.clientY / innerHeight - .5) * -18}px) scale(1.07)`;
   if (e.timeStamp - lastT < 50) return; lastT = e.timeStamp;
   spawn({ x: e.clientX * D, y: e.clientY * D, vx: (Math.random() - .5) * .6 * D, vy: .2 * D, g: 0, m: 28, r: 2 + Math.random() * 3, c: rc(), t: "s" });
