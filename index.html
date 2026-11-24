@@ -12,6 +12,7 @@
 </head>
 <body>
 <canvas id="bg" aria-hidden="true"></canvas>
+<canvas id="fw" aria-hidden="true"></canvas>
 <canvas id="fx" aria-hidden="true"></canvas>
 
 <!-- Countdown + password gate -->
@@ -115,6 +116,7 @@
     <p class="script big" id="t8"></p>
     <div id="cakeBox" hidden>
       <p class="hint">Make a wish. Then tap each candle.</p>
+      <div class="dstage" id="dStage" role="group" aria-label="Murugan blessings"></div>
       <div class="cake">
         <div class="candles" id="candles"></div>
         <div class="l l3"></div><div class="l l2"></div><div class="l l1"></div>
@@ -124,7 +126,6 @@
       <div class="rays" aria-hidden="true"></div>
       <p class="script big hb1" id="hb1">Happy Birthday</p>
       <div id="hbw"><h1 class="hb" id="hb"></h1></div>
-      <div id="nickw"><p class="nick" id="nick"></p></div>
       <p class="dl" id="dateLine"></p>
       <p class="serif sub" id="sub"></p>
       <div id="fText"></div>
@@ -169,6 +170,9 @@
 </div>
 
 <div class="tc" id="tc" hidden aria-hidden="true"></div>
+
+<!-- Birthday stickers: drift gently along the sides of the final page -->
+<div class="stickers" id="stickers" hidden aria-hidden="true"></div>
 
 <button id="music" aria-pressed="false" aria-label="Play music">🎵</button>
 <audio id="audio" loop preload="none"></audio>

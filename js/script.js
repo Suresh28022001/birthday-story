@@ -14,8 +14,24 @@ const LOVE_CONFIG = {
   galleryPin: "2826",                        // <- 4-digit PIN that unlocks the photo gallery
   pinHint: "Hint(date): only we know it. ❤️, call me if you need help",       // <- small hint shown on the lock screen
   birthdayDay: 26, birthdayMonth: 11,        // <- her birthday (26 November)
-  startDate: "2026-09-08",                   // <- the day your story began (YYYY-MM-DD). Use "" to hide the day counter
+  startDate: "2024-09-08",                   // <- the day your story began (YYYY-MM-DD). Use "" to hide the day counter
   videoFile: "images/birthday_wish_video.mp4", // <- video shown at the end of the wish page ("" hides the video)
+  birthdayName: "Papa",                     // <- the heading reads: "Happy Birthday" + this name (no rotating names)
+  murugaImages: [                            // <- one image per candle, in the order the candles are blown out
+    "images/muruga/muruga-img (1).jpg",
+    "images/muruga/muruga-img (2).jpg",
+    "images/muruga/muruga-img (3).jpg",
+    "images/muruga/muruga-img (4).jpg",
+    "images/muruga/muruga-img (5).jpg"
+  ],
+  stickers: [                                // <- 6 small birthday stickers (images/stickers folder) that drift along the sides
+    "images/stickers/sticker1.png",
+    "images/stickers/sticker2.png",
+    "images/stickers/sticker3.png",
+    "images/stickers/sticker4.png",
+    "images/stickers/sticker5.png",
+    "images/stickers/sticker6.png"
+  ],
   musicFile: "music/Uyirey.mp3",      // <- put your song in the music folder
   photos: [                                  // <- put your photos in the images folder
     "images/photo1.jpg",
@@ -192,7 +208,7 @@ const save = () => { if (restarting) return; try { localStorage.setItem(KEY, JSO
 if ("scrollRestoration" in history) history.scrollRestoration = "manual";
 
 /* ---------- typewriter ---------- */
-const type = (el, t, sp = 20) => new Promise(res => {
+const type = (el, t, sp = 40) => new Promise(res => {
   if (RM) { el.textContent = t; return res(); }
   let i = 0; el.classList.add("caret");
   const s = () => {
@@ -208,7 +224,7 @@ const bg = $("#bg"), b = bg.getContext("2d"), fx = $("#fx"), f = fx.getContext("
 const D = Math.min(devicePixelRatio || 1, 2), COL = ["#ff3d86", "#ff8fb6", "#e9c9a0", "#c2185b", "#f4a6c1", "#d9bc93"];
 let W = 0, H = 0, amb = [], P = [], fr = 0, bgRaf = 0, lastRW = innerWidth, lastRH = innerHeight;
 function resize() {
-  W = bg.width = fx.width = innerWidth * D; H = bg.height = fx.height = innerHeight * D;
+  W = bg.width = fx.width = fw.width = innerWidth * D; H = bg.height = fx.height = fw.height = innerHeight * D;
   const small = innerWidth < 600, n = RM ? 0 : (small ? 1 : 1.6);
   amb = [];
   for (let i = 0; i < 40 * n; i++) amb.push({ k: "s", x: Math.random(), y: Math.random(), r: Math.random() * 1.4 + .4, v: Math.random() * 4e-5 + 1e-5, p: Math.random() * 6 });
@@ -261,12 +277,46 @@ function burst(x, y, n = 14, t = "h", sp = 5) {
 function confetti() {
   for (let i = 0; i < (RM ? 20 : 170); i++) spawn({ x: Math.random() * W, y: -20 * D, vx: (Math.random() - .5) * 3 * D, vy: Math.random() * 3 * D, g: .06 * D, m: 220 + Math.random() * 80, r: 6 + Math.random() * 6, c: rc(), t: "c", vr: (Math.random() - .5) * .4 });
 }
-function fireworks(ms) {
-  const end = Date.now() + ms;
-  const iv = setInterval(() => {
-    if (Date.now() > end) return clearInterval(iv);
-    burst(innerWidth * (.15 + Math.random() * .7), innerHeight * (.15 + Math.random() * .35), 38, "s", 6);
-  }, 450);
+/* ---------- background fireworks (painted BEHIND the page content, used on the wish page) ---------- */
+const fw = $("#fw"), fc = fw.getContext("2d"), FWC = ["#ff3d86", "#c2185b", "#e0a64a", "#f4a6c1", "#d9a441", "#e9577f"];
+let FW = [], fwRaf = 0, fwOn = false, fwT = 0;
+function fwTick() {
+  fc.clearRect(0, 0, W, H); fc.lineCap = "round";
+  const live = FW; FW = [];                       // sparks born this frame (rocket bursts) go straight into the new list
+  for (const p of live) {
+    if (p.l >= p.m) continue;
+    p.l++; p.px = p.x; p.py = p.y; p.vx *= p.f; p.vy = p.vy * p.f + p.g; p.x += p.vx; p.y += p.vy;
+    if (p.k === "r" && p.vy > -.6 * D) { fwBoom(p.x, p.y); continue; }     // rocket reached its peak
+    fc.globalAlpha = p.k === "r" ? .7 : Math.max(0, 1 - p.l / p.m) * .85;
+    fc.strokeStyle = p.c; fc.lineWidth = p.r * D;
+    fc.beginPath(); fc.moveTo(p.px, p.py); fc.lineTo(p.x, p.y); fc.stroke();
+    FW.push(p);
+  }
+  fc.globalAlpha = 1;
+  fwRaf = FW.length ? requestAnimationFrame(fwTick) : (fc.clearRect(0, 0, W, H), 0);
+}
+function fwAdd(p) { FW.push(p); if (!fwRaf) fwRaf = requestAnimationFrame(fwTick); }
+function fwLaunch() {
+  if (RM) return;
+  const x = W * (.12 + Math.random() * .76), ty = H * (.12 + Math.random() * .32), g = .12 * D;
+  fwAdd({ k: "r", x, y: H, px: x, py: H, vx: (Math.random() - .5) * .5 * D, vy: -Math.sqrt(2 * g * (H - ty)), g, f: 1, l: 0, m: 400, r: 1.6, c: "#d9a441" });
+}
+function fwBoom(x, y) {
+  const n = innerWidth < 600 ? 30 : 46, c1 = FWC[Math.random() * FWC.length | 0], c2 = FWC[Math.random() * FWC.length | 0], sp = (2.2 + Math.random() * 1.6) * D;
+  for (let i = 0; i < n; i++) {
+    const a = i / n * 6.283 + Math.random() * .2, v = sp * (.55 + Math.random() * .45);
+    fwAdd({ k: "s", x, y, px: x, py: y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, g: .035 * D, f: .975, l: 0, m: 60 + Math.random() * 30 | 0, r: 1.8 + Math.random(), c: i % 2 ? c1 : c2 });
+  }
+}
+function fwStart() {                                // calm, occasional rockets while the person makes a wish
+  if (RM || fwOn) return; fwOn = true;
+  const next = () => { if (!fwOn) return; if (!document.hidden) fwLaunch(); fwT = setTimeout(next, 1400 + Math.random() * 1400); };
+  fwT = setTimeout(next, 500);
+}
+function fwStop() { fwOn = false; clearTimeout(fwT); }
+function fwGrand(ms) {                              // finale: a quick volley, still behind the content
+  if (RM) return;
+  const end = Date.now() + ms, iv = setInterval(() => { if (Date.now() > end) return clearInterval(iv); fwLaunch(); }, 420);
 }
 
 /* ---------- ripple on buttons ---------- */
@@ -313,6 +363,7 @@ function show(n) {
   chapters.forEach((s, i) => s.classList.toggle("active", i + 1 === n));
   document.body.classList.toggle("soft", n === 3 && opened3);
   document.body.style.setProperty("--g1", PAL[n - 1]);
+  if (n !== 7) { fwStop(); stickersOff(); }
   updateHud(); scrollTo(0, 0); titleCard(n);
   if (hooks[n]) hooks[n]();
 }
@@ -513,23 +564,49 @@ addEventListener("keydown", e => {
 let ch8 = false, lit = 5;
 const t8 = $("#t8");
 async function say(t, ms) { t8.textContent = t; t8.classList.add("show"); await wait(ms); t8.classList.remove("show"); await wait(1300); }
+
+/* Murugan images: the 1st candle blown out reveals image 1, the 2nd image 2, ... (queued so each one is seen) */
+const MURU = (C.murugaImages || []).map(s => encodeURI(s)), muruImgs = [];
+let muruQ = Promise.resolve();
+function muruLoad(k) {
+  if (!MURU[k]) return Promise.resolve(null);
+  return muruImgs[k] || (muruImgs[k] = new Promise(res => {
+    const im = new Image(); im.alt = `Lord Murugan, blessing ${k + 1} of ${MURU.length}`; im.decoding = "async";
+    im.onload = () => res(im); im.onerror = () => res(null); im.src = MURU[k];
+  }));
+}
+async function swapMuruga(k) {
+  if (!MURU[k]) return;
+  const stage = $("#dStage");
+  const im = await Promise.race([muruLoad(k), new Promise(r => setTimeout(() => r(null), 4000))]);
+  const scene = h("div", "dscene"), fr = h("figure", "dframe"), mat = h("div", "dmat");
+  scene.append(h("span", "dhalo"));
+  if (im) mat.append(im); else mat.append(h("span", "dph", "🙏"));
+  fr.append(mat); scene.append(fr);
+  $$(".dscene:not(.leave)", stage).forEach(o => { o.classList.add("leave"); setTimeout(() => o.remove(), RM ? 0 : 520); });
+  stage.append(scene); stage.classList.add("has");
+  const r = stage.getBoundingClientRect();           // make sure the blessing is on screen
+  if (r.top < 70 || r.bottom > innerHeight) stage.scrollIntoView({ behavior: RM ? "auto" : "smooth", block: "start" });
+}
+const showMuruga = k => muruQ = muruQ.then(() => swapMuruga(k)).catch(() => {}).then(() => wait(1300));
+
 for (let i = 0; i < 5; i++) {
   const c = h("button", "cd", `<span class="fl"></span>`); c.setAttribute("aria-label", "Candle " + (i + 1));
   c.onclick = async () => {
     if (c.classList.contains("out")) return;
     c.classList.add("out"); c.append(h("span", "sm")); burst(...ctr(c), 8); lit--;
+    showMuruga(4 - lit); fwLaunch();                 // 4 - lit = 0..4: the order the candles are blown out
     if (lit === 0) {
-      await wait(700); confetti(); fireworks(6000); burst(innerWidth / 2, innerHeight / 2, 60, "h", 8);
+      fwStop(); await muruQ;                         // let the last image settle first
+      await wait(700); confetti(); fwGrand(6000); burst(innerWidth / 2, innerHeight / 2, 60, "h", 8);
       await wait(2600); showFinal(false);
     }
   };
   $("#candles").append(c);
 }
-let fxT, nickT;
+let fxT;
 function finalFX() {
-  clearInterval(fxT); clearInterval(nickT);
-  const names = C.herNames.slice(1), nk = $("#nick"); let ni = 0; nk.textContent = names[0];
-  nickT = setInterval(() => { nk.style.opacity = 0; setTimeout(() => { ni = (ni + 1) % names.length; nk.textContent = names[ni]; nk.style.opacity = 1; }, 500); }, 2800);
+  clearInterval(fxT);
   if (RM) return;
   fxT = setInterval(() => {
     if ($("#final").hidden || locks || document.hidden) return;
@@ -537,6 +614,41 @@ function finalFX() {
     const r = $("#hb").getBoundingClientRect(); burst(r.left + Math.random() * r.width, r.top + Math.random() * r.height, 5, "s", 2.5);
   }, 1200);
 }
+
+/* ---------- final page: reveal one element at a time (each waits until it is on screen) ---------- */
+let seqId = 0;
+const inView = el => new Promise(res => {
+  if (!("IntersectionObserver" in window)) return res();
+  const io = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) { io.disconnect(); res(); } }, { rootMargin: "0px 0px -8% 0px", threshold: .15 });
+  io.observe(el);
+});
+async function revealSeq(items) {
+  if (RM) return;                                    // reduced motion: everything is simply there
+  const id = ++seqId; items = items.filter(([el]) => !el.hidden);
+  items.forEach(([el]) => el.classList.add("sq"));
+  for (const [el, gap] of items) {
+    await inView(el); if (id !== seqId) return;
+    el.classList.add("in"); setTimeout(() => el.classList.remove("sq", "in"), 1400);   // hand the element back to its normal styles
+    await wait(gap);
+  }
+}
+
+/* ---------- final page: birthday stickers drifting along the sides ---------- */
+const stk = $("#stickers"), STK_AT = [["l", 7], ["r", 19], ["l", 37], ["r", 51], ["l", 66], ["r", 78]];   // side, top %
+(C.stickers || []).slice(0, STK_AT.length).forEach((src, i) => {
+  const [side, top] = STK_AT[i], el = h("span", "stk " + side), im = new Image();
+  el.style.top = top + "%";
+  el.style.setProperty("--i", i); el.style.setProperty("--dur", 12 + (i * 5) % 7 + "s"); el.style.setProperty("--dl", -(i * 2.3).toFixed(1) + "s");
+  el.style.setProperty("--rot", (i % 2 ? -1 : 1) * (4 + i % 3 * 2) + "deg"); el.style.setProperty("--sx", (side === "l" ? 7 : -7) + "px");
+  im.alt = ""; im.decoding = "async"; im.draggable = false; im.onerror = () => el.remove(); im.src = encodeURI(src);
+  el.append(im); stk.append(el);
+});
+const stickersOn = instant => {
+  if (!stk.children.length) return; stk.hidden = false; clearTimeout(stickersOn.t);
+  stickersOn.t = setTimeout(() => stk.classList.add("on"), instant || RM ? 60 : 2400);
+};
+const stickersOff = () => { clearTimeout(stickersOn.t); stk.classList.remove("on"); stk.hidden = true; };
+
 /* ---------- video at the end of the wish page ---------- */
 const vidBox = $("#vidBox"), vid = $("#wishVideo"), vidMsg = $("#vidMsg");
 let musicWasOn = false;
@@ -554,25 +666,32 @@ vid.addEventListener("pause", resumeMusic); vid.addEventListener("ended", resume
 
 function showFinal(instant) {
   $("#cakeBox").hidden = true; t8.hidden = true;
-  $("#hb").textContent = C.herName; $("#bm").textContent = C.birthdayMessage;
+  $("#hb").textContent = C.birthdayName || C.herName; $("#bm").textContent = C.birthdayMessage;
   $("#sub").textContent = bdayDiff > 0 ? `${bdayStr} is all about celebrating you.` : "Today is about celebrating you.";
   $("#dateLine").textContent = new Date(C.unlockDate).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
   $("#sig").innerHTML = `<span>With all my love,</span><div class="chips"><i>${rep("[YOUR NAME 2]")}</i></div>`;
   const days = C.startDate ? Math.floor((Date.now() - new Date(C.startDate)) / 864e5) : 0;
   if (days > 0) { $("#days").hidden = false; $("#days").textContent = `${days} days of us, and I would choose every one again.`; }
   const ft = $("#fText"); ft.innerHTML = "";
-  const N = FINAL_TEXT.length, rv = (el, d) => { if (instant) return; el.classList.add("rv"); el.style.animationDelay = d + "s"; };
-  ["#hb1", "#hbw", "#nickw", "#dateLine", "#sub"].forEach((q, i) => rv($(q), .2 + i * .45));
-  FINAL_TEXT.forEach((t, i) => { const p = h("p"); p.textContent = rep(t); rv(p, 2.8 + i * .9); ft.append(p); });
-  rv($("#days"), 2.8 + N * .9); rv($("#sig"), 3.6 + N * .9); rv($("#bm"), 4.6 + N * .9); rv($("#lastBtn"), 5.8 + N * .9);
-  setupVideo(); rv($("#vidBox"), 6.8 + N * .9);
-  $("#final").hidden = false; scrollTo({ top: 0 }); finalFX();
+  const paras = FINAL_TEXT.map(t => { const p = h("p"); p.textContent = rep(t); ft.append(p); return p; });
+  setupVideo();
+  if (!instant) revealSeq([
+    [$("#hb1"), 650], [$("#hbw"), 700], [$("#dateLine"), 550], [$("#sub"), 800], [ft, 600],
+    ...paras.map(p => [p, 1000]),
+    [$("#days"), 800], [$("#sig"), 800], [$("#bm"), 800], [$("#lastBtn"), 700], [$("#vidBox"), 0]
+  ]);
+  $("#final").hidden = false; scrollTo({ top: 0 }); finalFX(); stickersOn(instant);
 }
 hooks[7] = async () => {
-  if (ch8) return; ch8 = true;
+  if (ch8) {                                          // coming back to this chapter: bring its extras back
+    if (!$("#final").hidden) stickersOn(true); else if (!$("#cakeBox").hidden) fwStart();
+    return;
+  }
+  ch8 = true;
   if (st.done >= TOTAL) return showFinal(true);
+  MURU.forEach((_, k) => muruLoad(k));                // preload the five images while the intro lines play
   await say("And now...", 2200); await say("There's only one thing left to say.", 3000);
-  t8.hidden = true; $("#cakeBox").hidden = false;
+  t8.hidden = true; $("#cakeBox").hidden = false; fwStart();
 };
 $("#lastBtn").onclick = () => {
   $("#lastText").textContent = rep(LAST_SURPRISE);   // full message in one go (no typewriter = nothing moves)
