@@ -7,8 +7,8 @@ const LOVE_CONFIG = {
   herName: "Sharmi",                         // <- her main name (used in "Dear ..." and the big birthday heading)
   herNames: ["Sharmi", "Thanga Mailuuu", "Milasha", "pattu", "Thango", "chello", "makku", "alagii", "pattu ma", "Maragathuuu magale"],   // <- her pet names (first = main name; the others rotate through the text)
   yourNames: ["Sharmi's pattu", "Sharmi's Boy", "Thanga Mailuu's love", "Nallavane KT"],   // <- your names. Each place that mentions you uses ONE of them (letter = 1st, birthday page = 2nd, last surprise = 3rd, easter egg = 4th)
-  unlockDate: "2026-10-26T00:00:00",         // <- opens by itself at this local time (26 Nov 2026, 12:00 am)
-  password: "pinkyy",                         // <- password that opens it early
+  unlockDate: "2026-11-26T00:00:00",         // <- local date/time shown by the gate countdown
+  password: "pinkyy",                         // <- password required each time the page is opened
   passwordHint: "love",                      // <- hint shown on the lock screen
   birthdayMessage: "Happy Birthday, My Love 💖",
   galleryPin: "2826",                        // <- 4-digit PIN that unlocks the photo gallery
@@ -24,14 +24,14 @@ const LOVE_CONFIG = {
     "images/muruga/muruga-img (4).jpg",
     "images/muruga/muruga-img (5).jpg"
   ],
-  stickers: [                                // <- 6 small birthday stickers (images/stickers folder) that drift along the sides
-    "images/stickers/sticker1.png",
-    "images/stickers/sticker2.png",
-    "images/stickers/sticker3.png",
-    "images/stickers/sticker4.png",
-    "images/stickers/sticker5.png",
-    "images/stickers/sticker6.png"
-  ],
+  stickers: [
+    "images/stickers/balloon.png",
+    "images/stickers/heart.png",
+    "images/stickers/star.png",
+    "images/stickers/celebration.png",
+    "images/stickers/confetti.png",
+    "images/stickers/balloon-color.png",
+  ],                              // <- optional image paths for stickers that drift along the sides
   wishLines: [                              // <- typed under the name on the Last Wish page ("Happy Birthday <name>" always comes first)
     "Have a wonderful day with your green dress",
     "Filled with joy and happiness Milasha."
@@ -95,7 +95,7 @@ Every conversation. Every laugh. Every little moment.
 Somehow, they all became memories but
 I want to keep forever.
 
-I may not always have the perfect words, but one thing will always be true
+I may not always have the perfect words, but one thing will always be true. Pure Cap lam ila.
 Ithu ellam AI ila, ella words ellam en heart-la irukura feelings da, unakku solla try panra.
 .
 .
@@ -204,7 +204,7 @@ const ctr = e => { const r = e.getBoundingClientRect(); return [r.left + r.width
 /* ---------- state (localStorage) ---------- */
 let st = { done: 0, cur: 1, mem: [], egg: false, music: false, candlesDone: false };
 let restarting = false;   // while true, nothing is written back to localStorage (see restart handler)
-try { Object.assign(st, JSON.parse(localStorage.getItem(KEY) || "{}")); localStorage.removeItem(OLD_KEY); } catch (e) {}
+try { localStorage.removeItem(KEY); localStorage.removeItem(OLD_KEY); } catch (e) {}
 st.done = Math.max(0, Math.min(Number(st.done) || 0, TOTAL));
 st.cur = Math.max(1, Math.min(Number(st.cur) || 1, TOTAL));
 // Restore only valid, unique memory indexes. Card flips are presentation state,
@@ -289,6 +289,7 @@ function confetti() {
 /* ---------- background fireworks (painted BEHIND the page content, used on the wish page) ---------- */
 const fw = $("#fw"), fc = fw.getContext("2d"), FWC = ["#ff3d86", "#c2185b", "#e0a64a", "#f4a6c1", "#d9a441", "#e9577f"];
 let FW = [], fwRaf = 0, fwOn = false, fwT = 0;
+let fwGrandTimer = 0;
 function fwTick() {
   fc.clearRect(0, 0, W, H); fc.lineCap = "round";
   const live = FW; FW = [];                       // sparks born this frame (rocket bursts) go straight into the new list
@@ -322,10 +323,18 @@ function fwStart() {                                // calm, occasional rockets 
   const next = () => { if (!fwOn) return; if (!document.hidden) fwLaunch(); fwT = setTimeout(next, 1400 + Math.random() * 1400); };
   fwT = setTimeout(next, 500);
 }
-function fwStop() { fwOn = false; clearTimeout(fwT); }
+function fwStop() {
+  fwOn = false; clearTimeout(fwT); clearInterval(fwGrandTimer); fwGrandTimer = 0;
+  FW = []; cancelAnimationFrame(fwRaf); fwRaf = 0; fc.clearRect(0, 0, W, H);
+}
 function fwGrand(ms) {                              // finale: a quick volley, still behind the content
   if (RM) return;
-  const end = Date.now() + ms, iv = setInterval(() => { if (Date.now() > end) return clearInterval(iv); fwLaunch(); }, 420);
+  clearInterval(fwGrandTimer);
+  const end = Date.now() + ms;
+  fwGrandTimer = setInterval(() => {
+    if (Date.now() > end) { clearInterval(fwGrandTimer); fwGrandTimer = 0; return; }
+    fwLaunch();
+  }, 420);
 }
 
 /* ---------- ripple on buttons ---------- */
@@ -352,7 +361,7 @@ function closeModal(m) { if (m.hidden) return; m.hidden = true; unlockScroll(); 
 
 /* ---------- chapter navigation ---------- */
 const chapters = $$(".chapter"), dots = $("#dots"), hooks = {};
-let opened3 = false, letterAnimating = false;
+let opened3 = false, letterAnimating = false, titleCardTimer = 0;
 for (let n = 1; n <= TOTAL; n++) { const d = h("button", "d"); d.setAttribute("aria-label", "Chapter " + n); d.onclick = () => show(n); dots.append(d); }
 function updateHud() {
   $("#hud").hidden = st.done < 1;
@@ -361,10 +370,12 @@ function updateHud() {
 const TITLES = ["", "Do you remember?", "A letter, just for you", "Things I love about you", "How well do you know us?", "Little moments, big memories", ""];
 const PAL = ["#ffd6e5", "#ffdde8", "#ffe0ea", "#ffd0e0", "#ffdbe6", "#ffd9e2", "#ffd6e5"];
 function titleCard(n) {
-  if (!TITLES[n - 1]) return;
-  const t = $("#tc"); t.hidden = false; t.innerHTML = `<small>♥</small><span>${TITLES[n - 1]}</span>`;
+  const t = $("#tc");
+  clearTimeout(titleCardTimer); titleCardTimer = 0;
+  if (!TITLES[n - 1]) { t.hidden = true; return; }
+  t.hidden = false; t.innerHTML = `<small>♥</small><span>${TITLES[n - 1]}</span>`;
   t.style.animation = "none"; void t.offsetWidth; t.style.animation = "";
-  setTimeout(() => t.hidden = true, RM ? 50 : 2200);
+  titleCardTimer = setTimeout(() => { t.hidden = true; titleCardTimer = 0; }, RM ? 50 : 2200);
 }
 function show(n) {
   if (n > st.done + 1 || n < 1 || n > TOTAL) return;
@@ -372,7 +383,12 @@ function show(n) {
   chapters.forEach((s, i) => s.classList.toggle("active", i + 1 === n));
   document.body.classList.toggle("soft", n === 3 && opened3);
   document.body.style.setProperty("--g1", PAL[n - 1]);
-  if (n !== 7) { fwStop(); stickersOff(); wlStop(); }
+  if (n !== 7) {
+    seqId++;
+    $$("#final .sq, #final .in").forEach(el => el.classList.remove("sq", "in"));
+    if (!vid.paused) vid.pause();
+    fwStop(); stopFinalFX(); stickersOff(); wlStop();
+  }
   updateHud(); scrollTo(0, 0); titleCard(n);
   if (hooks[n]) hooks[n]();
 }
@@ -645,9 +661,10 @@ for (let i = 0; i < 5; i++) {
   };
   $("#candles").append(c);
 }
-let fxT;
+let fxT = 0;
+function stopFinalFX() { clearInterval(fxT); fxT = 0; }
 function finalFX() {
-  clearInterval(fxT);
+  stopFinalFX();
   if (RM) return;
   fxT = setInterval(() => {
     if ($("#final").hidden || locks || document.hidden) return;
@@ -664,7 +681,7 @@ const inView = el => new Promise(res => {
   const done = () => { clearInterval(t); io.disconnect(); res(); };
   const io = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) done(); }, { rootMargin: "0px 0px -8% 0px", threshold: .15 });
   io.observe(el);
-  t = setInterval(() => { if (!el.isConnected || el.hidden) done(); }, 400);   // an element removed/hidden meanwhile (e.g. an image that failed) must not stall the sequence
+  t = setInterval(() => { if (!el.isConnected || el.hidden || !el.getClientRects().length) done(); }, 400);   // an element removed/hidden meanwhile (e.g. an image that failed) must not stall the sequence
 });
 async function revealSeq(items, autoScroll = false) {
   if (RM) { items.forEach(([, , cb]) => cb && cb()); return; }   // reduced motion: everything is simply there
@@ -989,9 +1006,9 @@ const wlConfetti = (() => {
 let wlTyped = null;
 let wlTypeComplete = null;
 function wlTypeStop() {
-  if (wlTyped) { wlTyped.destroy(); wlTyped = null; }
-  const done = wlTypeComplete;
-  if (done) done();
+  const typed = wlTyped;
+  wlTyped = null; wlTypeComplete = null;
+  if (typed) typed.destroy();
 }
 function wlTypeStart(onComplete) {
   wlTypeStop();
@@ -1014,7 +1031,12 @@ function wlTypeStart(onComplete) {
 /* balloon border: rises from the bottom once every time the page opens (template: 8 s) */
 let wlBalloonDone = null;
 function wlBalloonsHide() {
-  if (wlBalloonDone) { wlBalloonDone(); return; }
+  if (wlBalloonDone) {
+    const done = wlBalloonDone;
+    wlBalloonDone = null;
+    wlBalloons.removeEventListener("animationend", done);
+    wlBalloons.removeEventListener("error", done);
+  }
   wlBalloons.hidden = true; wlBalloons.classList.remove("rise");
 }
 function wlBalloonsRise(onDone) {
@@ -1058,9 +1080,13 @@ function showFinal(instant) {
   $("#cakeBox").hidden = true; t8.hidden = true;
   $("#hb").textContent = C.birthdayName || C.herName; $("#bm").textContent = C.birthdayMessage;
   $("#sub").textContent = bdayDiff > 0 ? `${bdayStr} is all about celebrating you.` : "Today is about celebrating you.";
-  $("#dateLine").textContent = new Date(C.unlockDate).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+  $("#dateLine").textContent = bday.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
   $("#sig").innerHTML = `<span>With all my love,</span><div class="chips"><i>${rep("[YOUR NAME 2]")}</i></div>`;
-  const days = C.startDate ? Math.floor((Date.now() - new Date(C.startDate)) / 864e5) : 0;
+  const [startYear, startMonth, startDay] = (C.startDate || "").split("-").map(Number);
+  const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+  const days = C.startDate
+    ? Math.floor((today - Date.UTC(startYear, startMonth - 1, startDay)) / 864e5)
+    : 0;
   if (days > 0) { $("#days").hidden = false; $("#days").textContent = `${days} days of us, and I would choose every one again.`; }
   const ft = $("#fText"); ft.innerHTML = "";
   const paras = FINAL_TEXT.map(t => { const p = h("p"); p.textContent = rep(t); ft.append(p); return p; });
@@ -1094,7 +1120,7 @@ function showFinal(instant) {
 }
 hooks[7] = async () => {
   if (ch8) {                                          // coming back to this chapter: bring its extras back
-    if (!$("#final").hidden) { stickersOn(true); wlConfetti.start(); wlTypeStart(); } else if (!$("#cakeBox").hidden) fwStart();
+    if (!$("#final").hidden) { stickersOn(true); wlStart(); wlTypeStart(); finalFX(); } else if (!$("#cakeBox").hidden) fwStart();
     return;
   }
   ch8 = true;
@@ -1167,10 +1193,8 @@ addEventListener("pointermove", e => {
 
 /* ---------- gate: countdown to the birthday + password ---------- */
 const gate = $("#gate"), gTarget = new Date(C.unlockDate).getTime();
-const gateOpen = Date.now() >= gTarget;
-const gDate = new Date(C.unlockDate).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
 $("#gFor").textContent = `For ${C.herName} ❤️`;
-$("#gInfo").textContent = `To open this, enter the password correctly, or wait until ${gDate}, 12:00 am.`;
+$("#gInfo").textContent = "Enter the password to begin. Refreshing or restarting will ask again.";
 $("#gMsg").textContent = `Hint: ${C.passwordHint} 💘`;
 function openGate(anim) {
   clearInterval(openGate.t);
@@ -1180,10 +1204,10 @@ function openGate(anim) {
   const c = chapters[0]; c.classList.remove("active"); void c.offsetWidth; c.classList.add("active"); // replay the opening
 }
 function tickGate() {
-  const ms = gTarget - Date.now(); if (ms <= 0) return openGate(true);
-  const s = Math.floor(ms / 1000), p = n => String(n).padStart(2, "0");
+  const ms = gTarget - Date.now(), s = Math.max(0, Math.floor(ms / 1000)), p = n => String(n).padStart(2, "0");
   $("#cdD").textContent = p(Math.floor(s / 86400)); $("#cdH").textContent = p(Math.floor(s % 86400 / 3600));
   $("#cdM").textContent = p(Math.floor(s % 3600 / 60)); $("#cdS").textContent = p(s % 60);
+  if (ms <= 0) { clearInterval(openGate.t); openGate.t = 0; }
 }
 let tries = 0, lastMsg = -1, entering = false;
 function pop(el, list) {
@@ -1205,12 +1229,12 @@ $("#gForm").onsubmit = e => {
   tries++; let i; do { i = Math.random() * WRONG_MSGS.length | 0; } while (i === lastMsg && WRONG_MSGS.length > 1); lastMsg = i;
   let t = WRONG_MSGS[i];
   if (tries >= 3) t += `\nhint: ${C.passwordHint} 💘`;
-  if (tries >= 6) t += `\nor just wait for the date, ${nick()} 🎂😂`;
   msg.textContent = t; inp.value = ""; inp.focus();
   f.classList.add("shake"); pop(inp, ["😜", "🙈", "😂", "🤭", "💔", "😝", "🤪"]);
   setTimeout(() => f.classList.remove("shake"), 500);
 };
-if (gateOpen) openGate(false); else { $("main").inert = true; tickGate(); openGate.t = setInterval(tickGate, 1000); }
+$("main").inert = true; tickGate();
+if (Date.now() < gTarget) openGate.t = setInterval(tickGate, 1000);
 
 /* ---------- boot ---------- */
 resize();
