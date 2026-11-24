@@ -43,7 +43,6 @@ h3{font-size:clamp(1.3rem,5vw,1.8rem);line-height:1.3}
 .chapter.active{display:flex;animation:in .65s both}
 @keyframes in{from{opacity:0;transform:translateY(8px)}}
 @keyframes rv{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.rv{opacity:0;animation:rv 1.6s forwards}
 .ln1,.ln2,.ln3{opacity:0;animation:rv 2s forwards}
 .ln1{animation-delay:.8s}.ln2{animation-delay:3.2s;font-size:1.25rem}.ln3{animation-delay:5.2s}
 .glass{background:rgba(255,255,255,.07);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
@@ -145,7 +144,7 @@ h3{font-size:clamp(1.3rem,5vw,1.8rem);line-height:1.3}
 .fl{position:absolute;left:50%;top:6px;width:12px;height:22px;margin-left:-6px;border-radius:50% 50% 50% 50%/60% 60% 40% 40%;
   background:radial-gradient(#fff 10%,#ffd36b 45%,#ff7a3d);box-shadow:0 0 18px 6px rgba(255,190,90,.7);animation:fk .18s infinite alternate}
 @keyframes fk{to{transform:scale(1.1,.92) rotate(3deg)}}
-.cd.out .fl{display:none}
+.cd.out .fl{animation:none;opacity:0;transform:translateY(-6px) scale(.2)}
 .sm{position:absolute;left:50%;top:10px;width:10px;height:10px;margin-left:-5px;border-radius:50%;background:rgba(255,255,255,.55);filter:blur(4px);animation:sk 2s forwards}
 @keyframes sk{to{transform:translate(12px,-90px) scale(5);opacity:0}}
 #final{display:flex;flex-direction:column;align-items:center;gap:18px;padding-top:10px}
@@ -269,7 +268,6 @@ button:focus-visible{outline-color:var(--deep)}
 .hb1{font-size:clamp(2.6rem,11vw,4.4rem);text-shadow:0 0 24px rgba(255,61,134,.35);margin-bottom:-6px}
 .hb{font-size:clamp(3rem,15vw,6rem);line-height:1.05;letter-spacing:.02em}
 .hb::after{content:"♥";-webkit-text-fill-color:var(--rose);color:var(--rose);animation:beat 1.8s infinite;display:block;line-height:.8}
-.nick{font:500 clamp(1.7rem,7vw,2.4rem) "Dancing Script",cursive;color:var(--rose);min-height:1.5em;transition:opacity .5s;text-shadow:0 0 16px rgba(255,61,134,.3)}
 .dl{display:flex;align-items:center;justify-content:center;gap:12px;font-size:.85rem;letter-spacing:.22em;color:#8a5a3c}
 .dl::before,.dl::after{content:"";width:42px;height:1px;background:var(--sand2)}
 #fText{width:100%;padding:34px 22px;border-radius:28px;background:linear-gradient(160deg,rgba(255,255,255,.92),rgba(241,231,216,.78));
@@ -287,7 +285,6 @@ button:focus-visible{outline-color:var(--deep)}
 #gMsg{white-space:pre-line;min-height:3.2em;font-size:.95rem;opacity:1}
 .pop{position:fixed;z-index:99;font-size:2rem;pointer-events:none;animation:pup 1.2s ease-out forwards}
 @keyframes pup{from{transform:translateY(0) rotate(0)}to{transform:translateY(-110px) rotate(var(--r));opacity:0}}
-.nick{text-transform:capitalize}
 
 /* ===== romantic scrapbook refinements ===== */
 .f,.opt{border-color:rgba(150,59,88,.18)}
@@ -301,7 +298,7 @@ button:focus-visible{outline-color:var(--deep)}
 @keyframes beat{50%{transform:scale(1.04)}}
 .chapter.active .pol img{animation-duration:1.4s}
 .hb{animation-duration:8s}
-.hb1,.nick{text-shadow:0 2px 10px rgba(150,59,88,.14)}
+.hb1{text-shadow:0 2px 10px rgba(150,59,88,.14)}
 .l1{background:linear-gradient(#d8849c,#aa4f6b)}
 .l2{background:linear-gradient(#e5a5b3,#c56e87)}
 .l3{background:linear-gradient(#f2d6d4,#e7b6be)}
@@ -345,3 +342,42 @@ body.noscroll{position:fixed;left:0;right:0;width:100%;overflow:hidden}
 .vwrap video{display:block;width:100%;height:auto;max-height:78dvh;border-radius:14px;background:#2a1a20;object-fit:contain}
 #vidMsg{max-width:360px}
 @media (max-width:480px){.vwrap{padding:6px;border-radius:18px}.vwrap video{border-radius:12px}}
+
+/* ===== v7: wish page (Murugan frames + background fireworks) ===== */
+#fw{z-index:1}                                   /* behind the content (chapters are z-index:2) */
+.fl{transition:opacity .35s ease,transform .35s ease}
+#cakeBox .cake{margin-top:70px}
+.dstage{position:relative;height:clamp(190px,30vh,320px);height:clamp(190px,30dvh,320px);aspect-ratio:4/5;max-width:78vw;margin:16px auto 0;
+  border-radius:20px;border:1px dashed rgba(150,59,88,.22);scroll-margin-top:84px;transition:border-color .6s}
+.dstage.has{border-color:transparent}
+.dscene{position:absolute;inset:0}
+.dscene.leave{animation:dleave .45s ease-in both;pointer-events:none}
+@keyframes dleave{to{opacity:0;transform:translateY(-8px) scale(.94)}}
+.dframe{position:absolute;inset:0;margin:0;padding:9px;border-radius:20px;
+  background:linear-gradient(145deg,#f7e6bd,#d9b46c 48%,#b98a4c);
+  box-shadow:0 14px 34px rgba(73,52,59,.22),0 0 0 1px rgba(150,59,88,.2),inset 0 0 0 1px rgba(255,255,255,.55);
+  animation:dpop .95s cubic-bezier(.2,.9,.25,1.12) both}
+.dframe::before{content:"";position:absolute;inset:4px;border-radius:16px;border:1px solid rgba(255,250,244,.7);pointer-events:none}
+.dframe::after{content:"❁";position:absolute;left:50%;top:-14px;width:28px;height:28px;margin-left:-14px;display:grid;place-items:center;border-radius:50%;
+  background:var(--cream);color:var(--rose);font-size:1rem;line-height:1;border:1px solid rgba(185,138,76,.7);box-shadow:0 2px 6px rgba(73,52,59,.2)}
+.dmat{display:grid;place-items:center;width:100%;height:100%;padding:6px;border-radius:12px;background:var(--cream);overflow:hidden;box-shadow:inset 0 0 0 1px rgba(150,59,88,.18)}
+.dmat img{display:block;width:100%;height:100%;object-fit:contain;border-radius:6px}   /* contain = the whole image stays visible */
+.dph{font-size:3rem}
+.dhalo{position:absolute;inset:-28px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(closest-side,rgba(255,214,120,.65),rgba(255,160,190,.26) 62%,transparent);animation:dhalo 1.8s ease-out both}
+@keyframes dpop{0%{opacity:0;transform:translateY(26px) scale(.55)}55%{opacity:1;transform:translateY(-4px) scale(1.05)}100%{opacity:1;transform:none}}
+@keyframes dhalo{0%{opacity:0;transform:scale(.6)}35%{opacity:1}100%{opacity:.45;transform:scale(1.08)}}
+
+/* ===== v7: final page (one-by-one reveal + side stickers) ===== */
+.sq{opacity:0;transform:translateY(16px) scale(.985);pointer-events:none;
+  transition:opacity 1.1s cubic-bezier(.22,.7,.2,1),transform 1.1s cubic-bezier(.22,.7,.2,1)}
+.sq.in{opacity:1;transform:none;pointer-events:auto}
+.stickers{position:fixed;inset:0;z-index:1;pointer-events:none;overflow:hidden}   /* behind the text (chapters are z-index:2) */
+.stk{position:absolute;width:clamp(30px,min(8.5vw,calc((100vw - 640px) / 2 - 12px)),64px);opacity:0;
+  transition:opacity 1.4s ease calc(var(--i,0) * .45s);
+  animation:stk var(--dur,14s) ease-in-out var(--dl,0s) infinite alternate;will-change:transform}
+.stk.l{left:clamp(-8px,2.2vw,48px)}.stk.r{right:clamp(-8px,2.2vw,48px)}
+.stk img{display:block;width:100%;height:auto;filter:drop-shadow(0 4px 6px rgba(73,52,59,.18));user-select:none;-webkit-user-drag:none}
+.stickers.on .stk{opacity:.9}
+@keyframes stk{from{transform:translate3d(0,-1.5vh,0) rotate(calc(var(--rot,6deg) * -1))}to{transform:translate3d(var(--sx,6px),7vh,0) rotate(var(--rot,6deg))}}
+@media (prefers-reduced-motion:reduce){.stk{animation:none}.dscene.leave{animation:none;opacity:0}}
