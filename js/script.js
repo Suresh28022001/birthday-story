@@ -10,13 +10,13 @@ const LOVE_CONFIG = {
   unlockDate: "2026-11-26T00:00:00",         // <- opens by itself at this local time (26 Nov 2026, 12:00 am)
   password: "pinkyy",                         // <- password that opens it early
   passwordHint: "love",                      // <- hint shown on the lock screen
-  birthdayMessage: "Happy Birthday, My Love ❤️",
+  birthdayMessage: "Happy Birthday, My Love 💖",
   galleryPin: "2826",                        // <- 4-digit PIN that unlocks the photo gallery
-  pinHint: "Hint(our birthday): only we know it. ❤️, call me if you need help",       // <- small hint shown on the lock screen
+  pinHint: "Hint(our birthday date): only we know it. ❤️, call me if you need help",       // <- small hint shown on the lock screen
   birthdayDay: 26, birthdayMonth: 11,        // <- her birthday (26 November)
   startDate: "2024-09-08",                   // <- the day your story began (YYYY-MM-DD). Use "" to hide the day counter
   videoFile: "images/birthday_wish_video.mp4", // <- video shown at the end of the wish page ("" hides the video)
-  birthdayName: "Papa",                     // <- the heading reads: "Happy Birthday" + this name (no rotating names)
+  birthdayName: "Papa 💕",                     // <- the heading reads: "Happy Birthday" + this name (no rotating names)
   murugaImages: [                            // <- one image per candle, in the order the candles are blown out
     "images/muruga/muruga-img (1).jpg",
     "images/muruga/muruga-img (2).jpg",
@@ -33,8 +33,8 @@ const LOVE_CONFIG = {
     "images/stickers/sticker6.png"
   ],
   wishLines: [                              // <- typed under the name on the Last Wish page ("Happy Birthday <name>" always comes first)
-    "Have a wonderful day",
-    "Filled with joy and happiness."
+    "Have a wonderful day with your green dress",
+    "Filled with joy and happiness Milasha."
   ],
   musicFile: "music/Uyirey.mp3",      // <- put your song in the music folder
   photos: [                                  // <- put your photos in the images folder
@@ -202,7 +202,7 @@ const rc = () => COL[Math.random() * COL.length | 0];
 const ctr = e => { const r = e.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; };
 
 /* ---------- state (localStorage) ---------- */
-let st = { done: 0, cur: 1, mem: [], egg: false, music: false, pin: false };
+let st = { done: 0, cur: 1, mem: [], egg: false, music: false };
 let restarting = false;   // while true, nothing is written back to localStorage (see restart handler)
 try { Object.assign(st, JSON.parse(localStorage.getItem(KEY) || "{}")); localStorage.removeItem(OLD_KEY); } catch (e) {}
 st.done = Math.max(0, Math.min(Number(st.done) || 0, TOTAL));
@@ -212,7 +212,7 @@ st.cur = Math.max(1, Math.min(Number(st.cur) || 1, TOTAL));
 st.mem = Array.isArray(st.mem)
   ? [...new Set(st.mem.filter(i => Number.isInteger(i) && i >= 0 && i < MEMORIES.length))]
   : [];
-st.egg = Boolean(st.egg); st.music = Boolean(st.music); st.pin = Boolean(st.pin);
+st.egg = Boolean(st.egg); st.music = Boolean(st.music);
 const save = () => { if (restarting) return; try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} };
 if ("scrollRestoration" in history) history.scrollRestoration = "manual";
 
@@ -586,12 +586,15 @@ async function key(k) {
   paint(); pm.textContent = "";
   if (entry.length < PIN.length) return;
   busy = true;
-  if (entry === PIN) { st.pin = true; save(); burst(innerWidth / 2, innerHeight / 2, 40, "h", 7); await wait(600); unlockGal(); }
+  if (entry === PIN) { burst(innerWidth / 2, innerHeight / 2, 40, "h", 7); await wait(600); unlockGal(); }
   else { pd.classList.add("shake"); pm.textContent = "That's not it. Try again ❤️"; await wait(550); pd.classList.remove("shake"); entry = ""; paint(); }
   busy = false;
 }
 function unlockGal() { pinBox.hidden = true; galBox.hidden = false; }
-hooks[6] = () => { if (st.pin || st.done >= 6 || !PIN) unlockGal(); };
+hooks[6] = () => {
+  entry = ""; paint(); pm.textContent = "";
+  pinBox.hidden = !PIN; galBox.hidden = Boolean(PIN);
+};
 addEventListener("keydown", e => {
   if (pinBox.hidden || !chapters[5].classList.contains("active")) return;
   if (/^\d$/.test(e.key)) key(e.key); else if (e.key === "Backspace") key("⌫");
