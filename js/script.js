@@ -14,7 +14,7 @@ const LOVE_CONFIG = {
   galleryPin: "2826",                        // <- 4-digit PIN that unlocks the photo gallery
   pinHint: "Hint(our birthday date): only we know it. ❤️, call me if you need help",       // <- small hint shown on the lock screen
   birthdayDay: 26, birthdayMonth: 11,        // <- her birthday (26 November)
-  startDate: "2024-09-08",                   // <- the day your story began (YYYY-MM-DD). Use "" to hide the day counter
+  startDate: "2026-09-08",                   // <- the day your story began (YYYY-MM-DD). Use "" to hide the day counter
   videoFile: "images/birthday_wish_video.mp4", // <- video shown at the end of the wish page ("" hides the video)
   birthdayName: "Papa 💕",                     // <- the heading reads: "Happy Birthday" + this name (no rotating names)
   murugaImages: [                            // <- one image per candle, in the order the candles are blown out
