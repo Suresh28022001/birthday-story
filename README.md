@@ -12,7 +12,7 @@ Open `js/script.js`. Everything you should edit is in the top block, above the l
 Then add your files:
 - Photos into `images/` named `photo1.jpg` to `photo12.jpg` (or change the names in `photos`). The gallery shows four photos per page across three pages; the third page is styled as the special memories page.
 - The song configured by `musicFile` (currently `music/Uyirey.mp3`).
-- Optional sticker images: add files under `images/stickers/` and list their paths in the `stickers` array. The array starts empty.
+- Sticker images: `baloon.jpg`, `heart.jpg`, and `star.jpg` in `images/stickers/` are configured by default. Add or remove paths in the `stickers` array; up to six stickers appear on the final page.
 
 ## 2. Run it on your computer
 **Easiest:** double-click `index.html` to preview the page. Some browsers restrict media loaded from `file://`, so use a local server for reliable video and audio playback.

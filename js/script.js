@@ -24,7 +24,14 @@ const LOVE_CONFIG = {
     "images/muruga/muruga-img (4).jpg",
     "images/muruga/muruga-img (5).jpg"
   ],
-  stickers: [],                              // <- optional image paths for stickers that drift along the sides
+  stickers: [
+    "images/stickers/balloon.png",
+    "images/stickers/heart.png",
+    "images/stickers/star.png",
+    "images/stickers/celebration.png",
+    "images/stickers/confetti.png",
+    "images/stickers/balloon-color.png",
+  ],                              // <- optional image paths for stickers that drift along the sides
   wishLines: [                              // <- typed under the name on the Last Wish page ("Happy Birthday <name>" always comes first)
     "Have a wonderful day with your green dress",
     "Filled with joy and happiness Milasha."
@@ -88,7 +95,7 @@ Every conversation. Every laugh. Every little moment.
 Somehow, they all became memories but
 I want to keep forever.
 
-I may not always have the perfect words, but one thing will always be true
+I may not always have the perfect words, but one thing will always be true. Pure Cap lam ila.
 Ithu ellam AI ila, ella words ellam en heart-la irukura feelings da, unakku solla try panra.
 .
 .
