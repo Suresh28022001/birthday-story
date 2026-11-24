@@ -13,6 +13,7 @@
 <body>
 <canvas id="bg" aria-hidden="true"></canvas>
 <canvas id="fw" aria-hidden="true"></canvas>
+<canvas id="wlc" hidden aria-hidden="true"></canvas>
 <canvas id="fx" aria-hidden="true"></canvas>
 
 <!-- Countdown + password gate -->
@@ -124,15 +125,19 @@
     </div>
     <div id="final" hidden>
       <div class="rays" aria-hidden="true"></div>
-      <p class="script big hb1" id="hb1">Happy Birthday</p>
+      <!-- Last Wish hero (adapted from github.com/ProgrammerGaurav/happy-birthday): banner, spinning name, typed message, cake -->
+      <img class="wl-banner" id="wlBanner" src="images/lastwish/banner.png" width="470" height="147" alt="" decoding="async">
+      <p class="script big hb1 wl-sr" id="hb1">Happy Birthday</p>
       <div id="hbw"><h1 class="hb" id="hb"></h1></div>
+      <p class="wl-type" id="wlType" aria-hidden="true"><span id="wlTyped"></span></p>
+      <img class="wl-cake" id="wlCake" src="images/lastwish/cake.gif" width="1000" height="1000" alt="A birthday cake" decoding="async">
       <p class="dl" id="dateLine"></p>
       <p class="serif sub" id="sub"></p>
       <div id="fText"></div>
       <p class="script big" id="days" hidden></p>
       <div id="sig"></div>
       <p class="script big" id="bm"></p>
-      <button class="btn" id="lastBtn">One Last Surprise ✨</button>
+      <button class="btn wl-gold" id="lastBtn">One Last Surprise ✨</button>
 
       <!-- Birthday video (path is set in script.js -> LOVE_CONFIG.videoFile) -->
       <section class="vidbox" id="vidBox" hidden aria-label="Birthday video">
@@ -174,9 +179,13 @@
 <!-- Birthday stickers: drift gently along the sides of the final page -->
 <div class="stickers" id="stickers" hidden aria-hidden="true"></div>
 
+<!-- Last Wish: balloon border that rises once when the page opens -->
+<img class="wl-balloons" id="wlBalloons" src="images/lastwish/balloon-border.png" alt="" hidden aria-hidden="true" decoding="async">
+
 <button id="music" aria-pressed="false" aria-label="Play music">🎵</button>
 <audio id="audio" loop preload="none"></audio>
 
+<script src="js/typed.min.js"></script>
 <script src="js/script.js"></script>
 </body>
 </html>

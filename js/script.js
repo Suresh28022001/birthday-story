@@ -10,13 +10,13 @@ const LOVE_CONFIG = {
   unlockDate: "2026-11-26T00:00:00",         // <- opens by itself at this local time (26 Nov 2026, 12:00 am)
   password: "pinkyy",                         // <- password that opens it early
   passwordHint: "love",                      // <- hint shown on the lock screen
-  birthdayMessage: "Happy Birthday, My Love ❤️",
+  birthdayMessage: "Happy Birthday, My Love 💖",
   galleryPin: "2826",                        // <- 4-digit PIN that unlocks the photo gallery
-  pinHint: "Hint(date): only we know it. ❤️, call me if you need help",       // <- small hint shown on the lock screen
+  pinHint: "Hint(our birthday date): only we know it. ❤️, call me if you need help",       // <- small hint shown on the lock screen
   birthdayDay: 26, birthdayMonth: 11,        // <- her birthday (26 November)
   startDate: "2024-09-08",                   // <- the day your story began (YYYY-MM-DD). Use "" to hide the day counter
   videoFile: "images/birthday_wish_video.mp4", // <- video shown at the end of the wish page ("" hides the video)
-  birthdayName: "Papa",                     // <- the heading reads: "Happy Birthday" + this name (no rotating names)
+  birthdayName: "Papa 💕",                     // <- the heading reads: "Happy Birthday" + this name (no rotating names)
   murugaImages: [                            // <- one image per candle, in the order the candles are blown out
     "images/muruga/muruga-img (1).jpg",
     "images/muruga/muruga-img (2).jpg",
@@ -31,6 +31,10 @@ const LOVE_CONFIG = {
     "images/stickers/sticker4.png",
     "images/stickers/sticker5.png",
     "images/stickers/sticker6.png"
+  ],
+  wishLines: [                              // <- typed under the name on the Last Wish page ("Happy Birthday <name>" always comes first)
+    "Have a wonderful day with your green dress",
+    "Filled with joy and happiness Milasha."
   ],
   musicFile: "music/Uyirey.mp3",      // <- put your song in the music folder
   photos: [                                  // <- put your photos in the images folder
@@ -92,6 +96,7 @@ Somehow, they all became memories but
 I want to keep forever.
 
 I may not always have the perfect words, but one thing will always be true
+Ithu ellam AI ila, ella words ellam en heart-la irukura feelings da, unakku solla try panra.
 .
 .
 .
@@ -123,10 +128,7 @@ const QUIZ_RESULT = "Okay... you officially know us too well, [HER NICK]. ❤️
 // Final birthday text: each item is one paragraph.
 const FINAL_TEXT = [
   "You deserve all the happiness,\nlove, laughter, and beautiful moments\nthis world can give you.",
-  "Thank you for being you, [HER NICK].",
   "Thank you for the smiles,\nthe conversations,\nthe memories,\nand all the little moments\nthat somehow mean so much.",
-  "I don't know what the future holds...\n\nbut I'm really happy\nthat our story exists.",
-  "And if I could make one birthday wish for you,\n\nit would simply be this:\n\nMay you always have reasons to smile.",
   "And whenever you forget how special you are...\n\nI hope this little website reminds you. ❤️"
 ];
 
@@ -141,11 +143,11 @@ Because your smile is one of the most beautiful things
 I could ever ask for.
 
 I hope you always know
-just how incredibly special you are to me, [HER NICK].
+just how incredibly special you are to me Alagii.
 
 Forever my favourite person. ❤️
 
-- [YOUR NAME 3]`;
+- Sharmi's boy`;
 
 const EGG_1 = "Okay... you found something I wasn't supposed to show you 😂❤️";
 const EGG_2 = "I love you more than this website can possibly explain, [HER NICK].\n\n- [YOUR NAME 4]";
@@ -200,10 +202,17 @@ const rc = () => COL[Math.random() * COL.length | 0];
 const ctr = e => { const r = e.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; };
 
 /* ---------- state (localStorage) ---------- */
-let st = { done: 0, cur: 1, mem: [], egg: false, music: false, pin: false };
+let st = { done: 0, cur: 1, mem: [], egg: false, music: false };
 let restarting = false;   // while true, nothing is written back to localStorage (see restart handler)
 try { Object.assign(st, JSON.parse(localStorage.getItem(KEY) || "{}")); localStorage.removeItem(OLD_KEY); } catch (e) {}
-st.done = Math.max(0, Math.min(+st.done || 0, TOTAL)); st.cur = Math.max(1, Math.min(+st.cur || 1, TOTAL));
+st.done = Math.max(0, Math.min(Number(st.done) || 0, TOTAL));
+st.cur = Math.max(1, Math.min(Number(st.cur) || 1, TOTAL));
+// Restore only valid, unique memory indexes. Card flips are presentation state,
+// so they are deliberately reset on every page load while completion persists.
+st.mem = Array.isArray(st.mem)
+  ? [...new Set(st.mem.filter(i => Number.isInteger(i) && i >= 0 && i < MEMORIES.length))]
+  : [];
+st.egg = Boolean(st.egg); st.music = Boolean(st.music);
 const save = () => { if (restarting) return; try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} };
 if ("scrollRestoration" in history) history.scrollRestoration = "manual";
 
@@ -343,7 +352,7 @@ function closeModal(m) { if (m.hidden) return; m.hidden = true; unlockScroll(); 
 
 /* ---------- chapter navigation ---------- */
 const chapters = $$(".chapter"), dots = $("#dots"), hooks = {};
-let opened3 = false;
+let opened3 = false, letterAnimating = false;
 for (let n = 1; n <= TOTAL; n++) { const d = h("button", "d"); d.setAttribute("aria-label", "Chapter " + n); d.onclick = () => show(n); dots.append(d); }
 function updateHud() {
   $("#hud").hidden = st.done < 1;
@@ -363,7 +372,7 @@ function show(n) {
   chapters.forEach((s, i) => s.classList.toggle("active", i + 1 === n));
   document.body.classList.toggle("soft", n === 3 && opened3);
   document.body.style.setProperty("--g1", PAL[n - 1]);
-  if (n !== 7) { fwStop(); stickersOff(); }
+  if (n !== 7) { fwStop(); stickersOff(); wlStop(); }
   updateHud(); scrollTo(0, 0); titleCard(n);
   if (hooks[n]) hooks[n]();
 }
@@ -394,30 +403,32 @@ const mcards = MEMORIES.map((m, i) => {
 function memCheck() {
   if (st.mem.length >= MEMORIES.length) { $("#memDone").hidden = false; reveal(2); }
 }
-st.mem.forEach(i => mcards[i] && mcards[i].classList.add("open")); memCheck();
+// Do not restore .open here: it represents the in-session card flip, not
+// completed progress. Keeping cards closed lets their blurred fronts animate
+// naturally after refresh; st.mem still preserves the unlocked/continue state.
+memCheck();
 
 /* ---------- 3 · letter ---------- */
-$("#openLetter").onclick = async e => {
-  e.currentTarget.hidden = true; opened3 = true;
+async function revealLetter() {
+  if (letterAnimating) return;
+  letterAnimating = true; opened3 = true;
+  $("#openLetter").hidden = true;
   $("#env").classList.add("open"); document.body.classList.add("soft");
-  burst(...ctr($("#env")), 30); await wait(2200);
+  burst(...ctr($("#env")), 30); await wait(800);
   $("#env").hidden = true; $("#intro3").hidden = true;
-  const L = $("#letter"); L.hidden = false;
-  await type(L, rep(LETTER), 45); reveal(3);
-};
+  const L = $("#letter"); L.textContent = ""; L.hidden = false;
+  await type(L, rep(LETTER), 12); reveal(3); letterAnimating = false;
+}
+$("#openLetter").onclick = revealLetter;
 hooks[3] = () => {
-  if (st.done >= 3 && !opened3) {
-    opened3 = true; document.body.classList.add("soft");
-    $("#env").hidden = $("#intro3").hidden = $("#openLetter").hidden = true;
-    const L = $("#letter"); L.hidden = false; L.textContent = rep(LETTER); reveal(3);
-  }
+  if (st.done >= 3 && !opened3) revealLetter();
 };
 
 /* ---------- 4 · stars ---------- */
 const SP = [[18, 14], [80, 10], [44, 32], [86, 44], [14, 54], [60, 60], [30, 84], [76, 84]];
 const heartPt = t => [50 + 41.6 * Math.sin(t) ** 3, 45 - 2.4 * (13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t))];
 const sky = $("#sky"), lines = $("#lines"), clicked = new Set();
-let prev = null, starsDone = false;
+let prev = null, starsDone = false, heartRun = 0;
 const starEls = STARS.map((s, i) => {
   const bt = h("button", "star"); bt.setAttribute("aria-label", s.label);
   bt.style.left = SP[i][0] + "%"; bt.style.top = SP[i][1] + "%";
@@ -435,8 +446,10 @@ const starEls = STARS.map((s, i) => {
   sky.append(bt); return bt;
 });
 async function finishHeart(instant) {
+  const run = heartRun;
   starsDone = true; $("#skyHint").hidden = true;
   if (!instant) await wait(1300);
+  if (run !== heartRun) return;
   lines.classList.add("fade");
   starEls.forEach((el, i) => {
     const [x, y] = heartPt(i * 2 * Math.PI / STARS.length); el.classList.add("on");
@@ -444,6 +457,7 @@ async function finishHeart(instant) {
     el.style.left = x + "%"; el.style.top = y + "%";
   });
   if (!instant) await wait(1900);
+  if (run !== heartRun) return;
   let d = ""; for (let k = 0; k <= 90; k++) { const [x, y] = heartPt(k / 90 * 2 * Math.PI); d += (k ? "L" : "M") + x.toFixed(1) + " " + y.toFixed(1); }
   const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
   p.setAttribute("d", d + "Z"); p.setAttribute("pathLength", 1); p.setAttribute("class", "hp"); lines.append(p);
@@ -451,13 +465,27 @@ async function finishHeart(instant) {
   $("#starMsg").innerHTML = `<b class="script big">Somehow, all the little things became one beautiful thing. ❤️</b>`;
   reveal(4);
 }
-hooks[4] = () => { if (st.done >= 4 && !starsDone) finishHeart(true); };
+function resetHeart() {
+  heartRun++;
+  clicked.clear(); prev = null; starsDone = false;
+  lines.replaceChildren(); lines.classList.remove("fade");
+  starEls.forEach((el, i) => {
+    el.classList.remove("on"); el.style.transition = "";
+    el.style.left = SP[i][0] + "%"; el.style.top = SP[i][1] + "%";
+  });
+  $("#skyHint").hidden = false; $("#starMsg").textContent = "";
+  const next = $("[data-next]", chapters[3]); if (next) next.hidden = true;
+}
+// This chapter is an interactive activity. Re-entering it starts a fresh run,
+// even when its completion was saved before a page refresh.
+hooks[4] = resetHeart;
 
 /* ---------- 5 · quiz ---------- */
-let qi = 0, quizEnded = false;
+let qi = 0, quizEnded = false, quizRun = 0;
 const qz = $("#quiz");
 function rq() {
   if (qi >= QUIZ.length) return endQuiz(true);
+  const run = quizRun;
   const q = QUIZ[qi]; qz.innerHTML = "";
   qz.append(h("p", "qn", `${qi + 1} / ${QUIZ.length}`), h("h3", "", q.q));
   const box = h("div", "opts");
@@ -465,7 +493,9 @@ function rq() {
     const bt = h("button", "opt", o);
     bt.onclick = async () => {
       $$(".opt", box).forEach(x => x.disabled = true); bt.classList.add("pick"); burst(...ctr(bt), 12);
-      qz.append(h("p", "reply script", q.reply[i] || "❤️")); await wait(1800); qi++; rq();
+      qz.append(h("p", "reply script", q.reply[i] || "❤️")); await wait(1800);
+      if (run !== quizRun) return;
+      qi++; rq();
     };
     box.append(bt);
   });
@@ -473,11 +503,18 @@ function rq() {
 }
 function endQuiz(fx_) {
   quizEnded = true; qz.innerHTML = "";
-  qz.append(h("p", "script big", rep(QUIZ_RESULT)));
+  qz.append(h("p", "script big quiz-result", rep(QUIZ_RESULT)));
   if (fx_) { confetti(); burst(innerWidth / 2, innerHeight / 2, 40, "h", 7); }
   reveal(5);
 }
-hooks[5] = () => { if (st.done >= 5 && !quizEnded) endQuiz(false); else if (!quizEnded && !qz.children.length) rq(); };
+function resetQuiz() {
+  quizRun++; qi = 0; quizEnded = false; qz.innerHTML = "";
+  const next = $("[data-next]", chapters[4]); if (next) next.hidden = true;
+  rq();
+}
+// Quiz answers are session-only, so every entry (including a refresh) starts
+// from question one instead of restoring a completed result with no questions.
+hooks[5] = resetQuiz;
 
 /* ---------- 6 · photos + lightbox ---------- */
 const lb = $("#lb"), lbImg = $("#lbImg"), lbPh = $("#lbPh"); let li = 0, galleryPage = 0;
@@ -549,12 +586,15 @@ async function key(k) {
   paint(); pm.textContent = "";
   if (entry.length < PIN.length) return;
   busy = true;
-  if (entry === PIN) { st.pin = true; save(); burst(innerWidth / 2, innerHeight / 2, 40, "h", 7); await wait(600); unlockGal(); }
+  if (entry === PIN) { burst(innerWidth / 2, innerHeight / 2, 40, "h", 7); await wait(600); unlockGal(); }
   else { pd.classList.add("shake"); pm.textContent = "That's not it. Try again ❤️"; await wait(550); pd.classList.remove("shake"); entry = ""; paint(); }
   busy = false;
 }
 function unlockGal() { pinBox.hidden = true; galBox.hidden = false; }
-hooks[6] = () => { if (st.pin || st.done >= 6 || !PIN) unlockGal(); };
+hooks[6] = () => {
+  entry = ""; paint(); pm.textContent = "";
+  pinBox.hidden = !PIN; galBox.hidden = Boolean(PIN);
+};
 addEventListener("keydown", e => {
   if (pinBox.hidden || !chapters[5].classList.contains("active")) return;
   if (/^\d$/.test(e.key)) key(e.key); else if (e.key === "Backspace") key("⌫");
@@ -619,16 +659,21 @@ function finalFX() {
 let seqId = 0;
 const inView = el => new Promise(res => {
   if (!("IntersectionObserver" in window)) return res();
-  const io = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) { io.disconnect(); res(); } }, { rootMargin: "0px 0px -8% 0px", threshold: .15 });
+  let t;
+  const done = () => { clearInterval(t); io.disconnect(); res(); };
+  const io = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) done(); }, { rootMargin: "0px 0px -8% 0px", threshold: .15 });
   io.observe(el);
+  t = setInterval(() => { if (!el.isConnected || el.hidden) done(); }, 400);   // an element removed/hidden meanwhile (e.g. an image that failed) must not stall the sequence
 });
 async function revealSeq(items) {
-  if (RM) return;                                    // reduced motion: everything is simply there
+  if (RM) { items.forEach(([, , cb]) => cb && cb()); return; }   // reduced motion: everything is simply there
   const id = ++seqId; items = items.filter(([el]) => !el.hidden);
   items.forEach(([el]) => el.classList.add("sq"));
-  for (const [el, gap] of items) {
+  for (const [el, gap, cb] of items) {
     await inView(el); if (id !== seqId) return;
+    if (el.hidden) continue;
     el.classList.add("in"); setTimeout(() => el.classList.remove("sq", "in"), 1400);   // hand the element back to its normal styles
+    if (cb) cb();                                                                      // e.g. start typing when the line appears
     await wait(gap);
   }
 }
@@ -648,6 +693,320 @@ const stickersOn = instant => {
   stickersOn.t = setTimeout(() => stk.classList.add("on"), instant || RM ? 60 : 2400);
 };
 const stickersOff = () => { clearTimeout(stickersOn.t); stk.classList.remove("on"); stk.hidden = true; };
+
+/* ---------- Last Wish page: effects adapted from github.com/ProgrammerGaurav/happy-birthday ----------
+   banner + cake gif + balloon border (images/lastwish), spinning name (CSS), typed.js message, ribbon confetti. */
+const wlCanvas = $("#wlc"), wlBalloons = $("#wlBalloons"), wlSpan = $("#wlTyped");
+
+/* Ribbon + paper confetti: the template's own classes (unchanged below), wrapped so no globals leak,
+   sized to the window, drawn behind the page, and paused while a popup is open. */
+const wlConfetti = (() => {
+  const retina = Math.min(devicePixelRatio || 1, 2), PI = Math.PI, sqrt = Math.sqrt, round = Math.round, random = Math.random, cos = Math.cos, sin = Math.sin,
+    DEG_TO_RAD = PI / 180, duration = 1 / 50, confettiRibbonCount = 10, ribbonPaperCount = 15, ribbonPaperDist = 8.0, ribbonPaperThick = 8.0, confettiPaperCount = 10,
+    colors = [["#df0049", "#660671"], ["#00e857", "#005291"], ["#2bebbc", "#05798a"], ["#ffd200", "#b06c00"]];
+      function Vector2(_x, _y) {
+          this.x = _x, this.y = _y;
+          this.Length = function () {
+              return sqrt(this.SqrLength());
+          }
+          this.SqrLength = function () {
+              return this.x * this.x + this.y * this.y;
+          }
+          this.Add = function (_vec) {
+              this.x += _vec.x;
+              this.y += _vec.y;
+          }
+          this.Sub = function (_vec) {
+              this.x -= _vec.x;
+              this.y -= _vec.y;
+          }
+          this.Div = function (_f) {
+              this.x /= _f;
+              this.y /= _f;
+          }
+          this.Mul = function (_f) {
+              this.x *= _f;
+              this.y *= _f;
+          }
+          this.Normalize = function () {
+              var sqrLen = this.SqrLength();
+              if (sqrLen != 0) {
+                  var factor = 1.0 / sqrt(sqrLen);
+                  this.x *= factor;
+                  this.y *= factor;
+              }
+          }
+          this.Normalized = function () {
+              var sqrLen = this.SqrLength();
+              if (sqrLen != 0) {
+                  var factor = 1.0 / sqrt(sqrLen);
+                  return new Vector2(this.x * factor, this.y * factor);
+              }
+              return new Vector2(0, 0);
+          }
+      }
+      Vector2.Sub = function (_vec0, _vec1) {
+          return new Vector2(_vec0.x - _vec1.x, _vec0.y - _vec1.y, _vec0.z - _vec1.z);
+      }
+
+      function EulerMass(_x, _y, _mass, _drag) {
+          this.position = new Vector2(_x, _y);
+          this.mass = _mass;
+          this.drag = _drag;
+          this.force = new Vector2(0, 0);
+          this.velocity = new Vector2(0, 0);
+          this.AddForce = function (_f) {
+              this.force.Add(_f);
+          }
+          this.Integrate = function (_dt) {
+              var acc = this.CurrentForce(this.position);
+              acc.Div(this.mass);
+              var posDelta = new Vector2(this.velocity.x, this.velocity.y);
+              posDelta.Mul(_dt);
+              this.position.Add(posDelta);
+              acc.Mul(_dt);
+              this.velocity.Add(acc);
+              this.force = new Vector2(0, 0);
+          }
+          this.CurrentForce = function (_pos, _vel) {
+              var totalForce = new Vector2(this.force.x, this.force.y);
+              var speed = this.velocity.Length();
+              var dragVel = new Vector2(this.velocity.x, this.velocity.y);
+              dragVel.Mul(this.drag * this.mass * speed);
+              totalForce.Sub(dragVel);
+              return totalForce;
+          }
+      }
+
+      function ConfettiPaper(_x, _y) {
+          this.pos = new Vector2(_x, _y);
+          this.rotationSpeed = (random() * 600 + 800);
+          this.angle = DEG_TO_RAD * random() * 360;
+          this.rotation = DEG_TO_RAD * random() * 360;
+          this.cosA = 1.0;
+          this.size = 5.0;
+          this.oscillationSpeed = (random() * 1.5 + 0.5);
+          this.xSpeed = 40.0;
+          this.ySpeed = (random() * 60 + 50.0);
+          this.corners = new Array();
+          this.time = random();
+          var ci = round(random() * (colors.length - 1));
+          this.frontColor = colors[ci][0];
+          this.backColor = colors[ci][1];
+          for (var i = 0; i < 4; i++) {
+              var dx = cos(this.angle + DEG_TO_RAD * (i * 90 + 45));
+              var dy = sin(this.angle + DEG_TO_RAD * (i * 90 + 45));
+              this.corners[i] = new Vector2(dx, dy);
+          }
+          this.Update = function (_dt) {
+              this.time += _dt;
+              this.rotation += this.rotationSpeed * _dt;
+              this.cosA = cos(DEG_TO_RAD * this.rotation);
+              this.pos.x += cos(this.time * this.oscillationSpeed) * this.xSpeed * _dt
+              this.pos.y += this.ySpeed * _dt;
+              if (this.pos.y > ConfettiPaper.bounds.y) {
+                  this.pos.x = random() * ConfettiPaper.bounds.x;
+                  this.pos.y = 0;
+              }
+          }
+          this.Draw = function (_g) {
+              if (this.cosA > 0) {
+                  _g.fillStyle = this.frontColor;
+              } else {
+                  _g.fillStyle = this.backColor;
+              }
+              _g.beginPath();
+              _g.moveTo((this.pos.x + this.corners[0].x * this.size) * retina, (this.pos.y + this.corners[0].y * this.size * this.cosA) * retina);
+              for (var i = 1; i < 4; i++) {
+                  _g.lineTo((this.pos.x + this.corners[i].x * this.size) * retina, (this.pos.y + this.corners[i].y * this.size * this.cosA) * retina);
+              }
+              _g.closePath();
+              _g.fill();
+          }
+      }
+      ConfettiPaper.bounds = new Vector2(0, 0);
+
+      function ConfettiRibbon(_x, _y, _count, _dist, _thickness, _angle, _mass, _drag) {
+          this.particleDist = _dist;
+          this.particleCount = _count;
+          this.particleMass = _mass;
+          this.particleDrag = _drag;
+          this.particles = new Array();
+          var ci = round(random() * (colors.length - 1));
+          this.frontColor = colors[ci][0];
+          this.backColor = colors[ci][1];
+          this.xOff = (cos(DEG_TO_RAD * _angle) * _thickness);
+          this.yOff = (sin(DEG_TO_RAD * _angle) * _thickness);
+          this.position = new Vector2(_x, _y);
+          this.prevPosition = new Vector2(_x, _y);
+          this.velocityInherit = (random() * 2 + 4);
+          this.time = random() * 100;
+          this.oscillationSpeed = (random() * 2 + 2);
+          this.oscillationDistance = (random() * 40 + 40);
+          this.ySpeed = (random() * 40 + 80);
+          for (var i = 0; i < this.particleCount; i++) {
+              this.particles[i] = new EulerMass(_x, _y - i * this.particleDist, this.particleMass, this.particleDrag);
+          }
+          this.Update = function (_dt) {
+              var i = 0;
+              this.time += _dt * this.oscillationSpeed;
+              this.position.y += this.ySpeed * _dt;
+              this.position.x += cos(this.time) * this.oscillationDistance * _dt;
+              this.particles[0].position = this.position;
+              var dX = this.prevPosition.x - this.position.x;
+              var dY = this.prevPosition.y - this.position.y;
+              var delta = sqrt(dX * dX + dY * dY);
+              this.prevPosition = new Vector2(this.position.x, this.position.y);
+              for (i = 1; i < this.particleCount; i++) {
+                  var dirP = Vector2.Sub(this.particles[i - 1].position, this.particles[i].position);
+                  dirP.Normalize();
+                  dirP.Mul((delta / _dt) * this.velocityInherit);
+                  this.particles[i].AddForce(dirP);
+              }
+              for (i = 1; i < this.particleCount; i++) {
+                  this.particles[i].Integrate(_dt);
+              }
+              for (i = 1; i < this.particleCount; i++) {
+                  var rp2 = new Vector2(this.particles[i].position.x, this.particles[i].position.y);
+                  rp2.Sub(this.particles[i - 1].position);
+                  rp2.Normalize();
+                  rp2.Mul(this.particleDist);
+                  rp2.Add(this.particles[i - 1].position);
+                  this.particles[i].position = rp2;
+              }
+              if (this.position.y > ConfettiRibbon.bounds.y + this.particleDist * this.particleCount) {
+                  this.Reset();
+              }
+          }
+          this.Reset = function () {
+              this.position.y = -random() * ConfettiRibbon.bounds.y;
+              this.position.x = random() * ConfettiRibbon.bounds.x;
+              this.prevPosition = new Vector2(this.position.x, this.position.y);
+              this.velocityInherit = random() * 2 + 4;
+              this.time = random() * 100;
+              this.oscillationSpeed = random() * 2.0 + 1.5;
+              this.oscillationDistance = (random() * 40 + 40);
+              this.ySpeed = random() * 40 + 80;
+              var ci = round(random() * (colors.length - 1));
+              this.frontColor = colors[ci][0];
+              this.backColor = colors[ci][1];
+              this.particles = new Array();
+              for (var i = 0; i < this.particleCount; i++) {
+                  this.particles[i] = new EulerMass(this.position.x, this.position.y - i * this.particleDist, this.particleMass, this.particleDrag);
+              }
+          };
+          this.Draw = function (_g) {
+              for (var i = 0; i < this.particleCount - 1; i++) {
+                  var p0 = new Vector2(this.particles[i].position.x + this.xOff, this.particles[i].position.y + this.yOff);
+                  var p1 = new Vector2(this.particles[i + 1].position.x + this.xOff, this.particles[i + 1].position.y + this.yOff);
+                  if (this.Side(this.particles[i].position.x, this.particles[i].position.y, this.particles[i + 1].position.x, this.particles[i + 1].position.y, p1.x, p1.y) < 0) {
+                      _g.fillStyle = this.frontColor;
+                      _g.strokeStyle = this.frontColor;
+                  } else {
+                      _g.fillStyle = this.backColor;
+                      _g.strokeStyle = this.backColor;
+                  }
+                  if (i == 0) {
+                      _g.beginPath();
+                      _g.moveTo(this.particles[i].position.x * retina, this.particles[i].position.y * retina);
+                      _g.lineTo(this.particles[i + 1].position.x * retina, this.particles[i + 1].position.y * retina);
+                      _g.lineTo(((this.particles[i + 1].position.x + p1.x) * 0.5) * retina, ((this.particles[i + 1].position.y + p1.y) * 0.5) * retina);
+                      _g.closePath();
+                      _g.stroke();
+                      _g.fill();
+                      _g.beginPath();
+                      _g.moveTo(p1.x * retina, p1.y * retina);
+                      _g.lineTo(p0.x * retina, p0.y * retina);
+                      _g.lineTo(((this.particles[i + 1].position.x + p1.x) * 0.5) * retina, ((this.particles[i + 1].position.y + p1.y) * 0.5) * retina);
+                      _g.closePath();
+                      _g.stroke();
+                      _g.fill();
+                  } else if (i == this.particleCount - 2) {
+                      _g.beginPath();
+                      _g.moveTo(this.particles[i].position.x * retina, this.particles[i].position.y * retina);
+                      _g.lineTo(this.particles[i + 1].position.x * retina, this.particles[i + 1].position.y * retina);
+                      _g.lineTo(((this.particles[i].position.x + p0.x) * 0.5) * retina, ((this.particles[i].position.y + p0.y) * 0.5) * retina);
+                      _g.closePath();
+                      _g.stroke();
+                      _g.fill();
+                      _g.beginPath();
+                      _g.moveTo(p1.x * retina, p1.y * retina);
+                      _g.lineTo(p0.x * retina, p0.y * retina);
+                      _g.lineTo(((this.particles[i].position.x + p0.x) * 0.5) * retina, ((this.particles[i].position.y + p0.y) * 0.5) * retina);
+                      _g.closePath();
+                      _g.stroke();
+                      _g.fill();
+                  } else {
+                      _g.beginPath();
+                      _g.moveTo(this.particles[i].position.x * retina, this.particles[i].position.y * retina);
+                      _g.lineTo(this.particles[i + 1].position.x * retina, this.particles[i + 1].position.y * retina);
+                      _g.lineTo(p1.x * retina, p1.y * retina);
+                      _g.lineTo(p0.x * retina, p0.y * retina);
+                      _g.closePath();
+                      _g.stroke();
+                      _g.fill();
+                  }
+              }
+          }
+          this.Side = function (x1, y1, x2, y2, x3, y3) {
+              return ((x1 - x2) * (y3 - y2) - (y1 - y2) * (x3 - x2));
+          }
+      }
+      ConfettiRibbon.bounds = new Vector2(0, 0);
+
+  const g = wlCanvas.getContext("2d");
+  let cw = 0, ch = 0, ribbons = [], papers = [], raf = 0, last = 0, running = false;
+  function size() {
+    cw = innerWidth; ch = innerHeight; wlCanvas.width = cw * retina; wlCanvas.height = ch * retina;
+    ConfettiPaper.bounds = new Vector2(cw, ch); ConfettiRibbon.bounds = new Vector2(cw, ch);
+  }
+  function tick(now) {
+    if (!running) return;
+    raf = requestAnimationFrame(tick);
+    const frames = Math.min((now - last) / 16.667, 3); if (frames <= 0) return; last = now;   // same speed on 60 Hz and 120 Hz screens
+    if (locks || document.hidden) return;                                                    // nothing moves behind a popup
+    g.clearRect(0, 0, wlCanvas.width, wlCanvas.height);
+    const dt = duration * frames;
+    for (let i = 0; i < confettiPaperCount; i++) { papers[i].Update(dt); papers[i].Draw(g); }
+    for (let i = 0; i < confettiRibbonCount; i++) { ribbons[i].Update(dt); ribbons[i].Draw(g); }
+  }
+  addEventListener("resize", () => { if (running && !(innerWidth === cw && Math.abs(innerHeight - ch) < 160)) size(); });
+  return {
+    start() {
+      if (RM || running) return;
+      running = true; wlCanvas.hidden = false; size(); ribbons = []; papers = [];
+      for (let i = 0; i < confettiRibbonCount; i++) ribbons[i] = new ConfettiRibbon(random() * cw, -random() * ch * 2, ribbonPaperCount, ribbonPaperDist, ribbonPaperThick, 45, 1, 0.05);
+      for (let i = 0; i < confettiPaperCount; i++) papers[i] = new ConfettiPaper(random() * cw, random() * ch);
+      last = performance.now(); raf = requestAnimationFrame(tick);
+    },
+    stop() { running = false; cancelAnimationFrame(raf); g.clearRect(0, 0, wlCanvas.width, wlCanvas.height); wlCanvas.hidden = true; }
+  };
+})();
+
+/* typed.js message (template: "Happy Birthday <name>", then the wish lines, looping) */
+let wlTyped = null;
+function wlTypeStop() { if (wlTyped) { wlTyped.destroy(); wlTyped = null; } }
+function wlTypeStart() {
+  wlTypeStop();
+  const lines = [`Happy Birthday ${C.birthdayName || C.herName}`, ...(C.wishLines || [])];
+  if (RM || typeof Typed === "undefined") { wlSpan.textContent = lines.join("\n"); return; }   // reduced motion / file missing: plain text
+  wlSpan.textContent = "";
+  wlTyped = new Typed("#wlTyped", { strings: lines, typeSpeed: 30, backSpeed: 10, loop: true });
+}
+
+/* balloon border: rises from the bottom once every time the page opens (template: 8 s) */
+function wlBalloonsRise() {
+  if (RM) return;
+  wlBalloons.hidden = false; wlBalloons.classList.remove("rise"); void wlBalloons.offsetWidth; wlBalloons.classList.add("rise");
+}
+const wlBalloonsHide = () => { wlBalloons.hidden = true; wlBalloons.classList.remove("rise"); };
+wlBalloons.addEventListener("animationend", wlBalloonsHide);
+wlBalloons.addEventListener("error", wlBalloonsHide);
+// A missing banner/cake image is simply left out (it must never stall the one-by-one reveal).
+[$("#wlBanner"), $("#wlCake")].forEach(im => { const gone = () => { im.hidden = true; }; if (im.complete && !im.naturalWidth) gone(); im.addEventListener("error", gone); });
+
+const wlStart = () => { wlConfetti.start(); wlBalloonsRise(); };
+const wlStop = () => { wlTypeStop(); wlConfetti.stop(); wlBalloonsHide(); };
 
 /* ---------- video at the end of the wish page ---------- */
 const vidBox = $("#vidBox"), vid = $("#wishVideo"), vidMsg = $("#vidMsg");
@@ -675,20 +1034,26 @@ function showFinal(instant) {
   const ft = $("#fText"); ft.innerHTML = "";
   const paras = FINAL_TEXT.map(t => { const p = h("p"); p.textContent = rep(t); ft.append(p); return p; });
   setupVideo();
+  // Reveal the parent before observing its children; observers cannot reliably
+  // start the sequence while the entire final section is hidden.
+  $("#final").hidden = false;
+  scrollTo({ top: 0 });
+  wlStart();
   if (!instant) revealSeq([
-    [$("#hb1"), 650], [$("#hbw"), 700], [$("#dateLine"), 550], [$("#sub"), 800], [ft, 600],
+    [$("#wlBanner"), 700], [$("#hbw"), 700], [$("#wlType"), 700, wlTypeStart], [$("#wlCake"), 800], [$("#dateLine"), 550], [$("#sub"), 800], [ft, 600],
     ...paras.map(p => [p, 1000]),
     [$("#days"), 800], [$("#sig"), 800], [$("#bm"), 800], [$("#lastBtn"), 700], [$("#vidBox"), 0]
   ]);
-  $("#final").hidden = false; scrollTo({ top: 0 }); finalFX(); stickersOn(instant);
+  if (instant) wlTypeStart();
+  finalFX(); stickersOn(instant);
 }
 hooks[7] = async () => {
   if (ch8) {                                          // coming back to this chapter: bring its extras back
-    if (!$("#final").hidden) stickersOn(true); else if (!$("#cakeBox").hidden) fwStart();
+    if (!$("#final").hidden) { stickersOn(true); wlConfetti.start(); wlTypeStart(); } else if (!$("#cakeBox").hidden) fwStart();
     return;
   }
   ch8 = true;
-  if (st.done >= TOTAL) return showFinal(true);
+  if (st.done >= TOTAL) return showFinal(false);
   MURU.forEach((_, k) => muruLoad(k));                // preload the five images while the intro lines play
   await say("And now...", 2200); await say("There's only one thing left to say.", 3000);
   t8.hidden = true; $("#cakeBox").hidden = false; fwStart();
